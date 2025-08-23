@@ -2356,7 +2356,7 @@
             if (!tabList) return;
 
             const tabIds = Object.keys(state.tabs);
-            Utils.log(`[Render] 开始渲染，检测到 ${tabIds.length} 个活动标签页。IDs: [${tabIds.join(', ')}]`); // 新增日志
+            // Utils.log(`[Render] 开始渲染，检测到 ${tabIds.length} 个活动标签页。IDs: [${tabIds.join(', ')}]`); // 新增日志
 
             document.getElementById('qmx-active-tabs-count').textContent = tabIds.length;
 
@@ -2366,7 +2366,7 @@
             };
 
             const existingRoomIds = new Set(Array.from(tabList.children).map(node => node.dataset.roomId).filter(Boolean));
-            Utils.log(`[Render] 当前UI上显示的IDs: [${Array.from(existingRoomIds).join(', ')}]`); // 新增日志
+            // Utils.log(`[Render] 当前UI上显示的IDs: [${Array.from(existingRoomIds).join(', ')}]`); // 新增日志
 
             // --- 核心更新/创建循环 ---
             tabIds.forEach(roomId => {
@@ -2388,7 +2388,7 @@
 
                 if (existingItem) {
                     // --- A. 如果条目已存在，则只更新内容 (UPDATE path) ---
-                    Utils.log(`[Render] 房间 ${roomId}: UI条目已存在，准备更新。状态: ${tabData.status}, 文本: "${currentStatusText}"`); // 新增日志
+                    // Utils.log(`[Render] 房间 ${roomId}: UI条目已存在，准备更新。状态: ${tabData.status}, 文本: "${currentStatusText}"`); // 新增日志
                     const nicknameEl = existingItem.querySelector('.qmx-tab-nickname');
                     const statusNameEl = existingItem.querySelector('.qmx-tab-status-name');
                     const statusTextEl = existingItem.querySelector('.qmx-tab-status-text');
@@ -2408,7 +2408,7 @@
                     }
                 } else {
                     // --- B. 如果条目不存在，则创建并添加 (CREATE path) ---
-                    Utils.log(`[Render] 房间 ${roomId}: UI条目不存在，执行创建！状态: ${tabData.status}, 文本: "${currentStatusText}"`); // 新增日志
+                    // Utils.log(`[Render] 房间 ${roomId}: UI条目不存在，执行创建！状态: ${tabData.status}, 文本: "${currentStatusText}"`); // 新增日志
                     const newItem = this.createTaskItem(roomId, tabData, statusDisplayMap, currentStatusText);
                     tabList.appendChild(newItem);
                     requestAnimationFrame(() => {
