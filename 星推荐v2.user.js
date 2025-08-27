@@ -1005,7 +1005,7 @@
 
                     // 4. 打开新标签页（交棒）
                     // 保证使用旧版UI
-                    if (window.location.href.includes('/beta')){
+                    if (window.location.href.includes('/beta') || localStorage.getItem("newWebLive") !== "A"){
                         // --- 找到了“/beta”，说明是新版UI ---
                         localStorage.setItem("newWebLive", "A");
                     }
@@ -2527,7 +2527,7 @@
 
                     GlobalState.updateWorker(newRoomId, 'OPENING', '正在打开...');
                     // 保证使用旧版UI
-                    if (window.location.href.includes('/beta')){
+                    if (window.location.href.includes('/beta') || localStorage.getItem("newWebLive") !== "A"){
                         // --- 找到了“/beta”，说明是新版UI ---
                         localStorage.setItem("newWebLive", "A");
                     }
