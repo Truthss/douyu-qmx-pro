@@ -1,9 +1,9 @@
 // ==UserScript==
-// @name             斗鱼全民星推荐自动领取pro
+// @name             斗鱼全民星推荐助手+弹幕助手-beta
 // @namespace        http://tampermonkey.net/
-// @version          2.0.8
+// @version          beta-2-beta
 // @author           ienone&Truthss
-// @description      原版《斗鱼全民星推荐自动领取》的增强版(应该增强了……)在保留核心功能的基础上，引入了可视化管理面板。
+// @description      斗鱼全民星推荐自动领取 + 弹幕智能助手 - 集成红包自动领取与弹幕补全功能的完整版
 // @license          MIT
 // @match            *://www.douyu.com/*
 // @connect          list-www.douyu.com
@@ -67,8 +67,8 @@ AUTO_PAUSE_ENABLED: true,
 AUTO_PAUSE_DELAY_AFTER_ACTION: 5e3,
 CALIBRATION_MODE_ENABLED: false,
 SHOW_STATS_IN_PANEL: false,
-ENABLE_DANMU_PRO: true,
 
+ENABLE_DANMU_PRO: true,
 STATE_STORAGE_KEY: "douyu_qmx_dashboard_state",
 DAILY_LIMIT_REACHED_KEY: "douyu_qmx_daily_limit_reached",
 STATS_INFO_STORAGE_KEY: "douyu_qmx_stats",
@@ -81,21 +81,27 @@ UI_FEEDBACK_DELAY: 2e3,
 DRAG_BUTTON_DEFAULT_PADDING: 20,
 CONVERT_LEGACY_POSITION: true,
 
-
 SELECTORS: {
-      redEnvelopeContainer: "#layout-Player-aside div.LiveNewAnchorSupportT-enter",
-countdownTimer: "span.LiveNewAnchorSupportT-enter--bottom",
-popupModal: "body > div.LiveNewAnchorSupportT-pop",
-openButton: "div.LiveNewAnchorSupportT-singleBag--btnOpen",
-closeButton: "div.LiveNewAnchorSupportT-pop--close",
+redEnvelopeContainer: 'div.activeItem__d6uUm, div[class*="activeItem"]',
+clickableContainer: 'div.container__0Xsh2, div[class*="container__"]',
+countdownTimer: 'div.boxContent__N0d-3, div[class*="boxContent"]',
+statusHeadline: 'div.boxHeadline__GP-am, div[class*="boxHeadline"]',
+boxIcon: 'div.boxIcon__H-44m, div[class*="boxIcon"]',
+popupModal: 'div.LiveNewAnchorSupportT-pop--inner, div[class*="pop--inner"]',
+singleBag: 'div.LiveNewAnchorSupportT-singleBag, div[class*="singleBag"]',
+openButton: 'div.LiveNewAnchorSupportT-singleBag--btn, div[class*="singleBag--btn"]',
+closeButton: 'div.LiveNewAnchorSupportT-pop--close, div[class*="pop--close"]',
 criticalElement: "#js-player-video",
-pauseButton: "div.pause-c594e8:not(.removed-9d4c42)",
-playButton: "div.play-8dbf03:not(.removed-9d4c42)",
-rewardSuccessIndicator: ".LiveNewAnchorSupportT-singleBagOpened",
+      pauseButton: '#js-player-controlbar [class*="left-"] i:nth-child(1), [class*="icon-pause"], .icon-c8be96',
+rewardSuccessIndicator: '[class*="singleBagOpened"]',
 limitReachedPopup: "div.dy-Message-custom-content.dy-Message-info",
-rankListContainer: "#layout-Player-aside > div.layout-Player-asideMainTop > div.layout-Player-rank",
-anchorName: "div.Title-anchorName > h2.Title-anchorNameH2"
-},
+      rankListContainer: "#layout-Player-aside > div.layout-Player-asideMainTop > div.layout-Player-rank",
+      anchorName: 'h3.anchorName__6NXv9, h3[class*="anchorName"], div.Title-anchorName > h2.Title-anchorNameH2',
+prizeContainer: 'div.LiveNewAnchorSupportT-singleBag--awards, div[class*="singleBag--awards"]',
+      prizeItem: 'div.LiveNewAnchorSupportT-singleBag--prize, div[class*="singleBag--prize"]',
+      prizeImage: "img",
+      prizeCount: "span"
+    },
 
 
 
@@ -472,7 +478,7 @@ getElementWithRetry: async function(selector, parentNode = document, retries = 5
       console.log(logPrefix + "Initialisation failed - HTML5 Web Worker is not supported");
     }
   }
-  const ControlPanelRefactoredCss = ':root{color-scheme:light dark;--motion-easing: cubic-bezier(.4, 0, .2, 1);--status-color-waiting: #4CAF50;--status-color-claiming: #2196F3;--status-color-switching: #FFC107;--status-color-error: #F44336;--status-color-opening: #9C27B0;--status-color-dormant: #757575;--status-color-unresponsive: #FFA000;--status-color-disconnected: #BDBDBD;--status-color-stalled: #9af39dff}body[data-theme=dark]{--md-sys-color-primary: #D0BCFF;--md-sys-color-on-primary: #381E72;--md-sys-color-primary-container: #4F378B;--md-sys-color-on-primary-container: #EADDFF;--md-sys-color-surface-container: #211F26;--md-sys-color-on-surface: #E6E1E5;--md-sys-color-on-surface-variant: #CAC4D0;--md-sys-color-outline: #938F99;--md-sys-color-surface-bright: #36343B;--md-sys-color-tertiary: #EFB8C8;--md-sys-color-scrim: #000000;--surface-container-highest: #3D3B42}body[data-theme=light]{--md-sys-color-primary: #6750A4;--md-sys-color-on-primary: #FFFFFF;--md-sys-color-primary-container: #EADDFF;--md-sys-color-on-primary-container: #21005D;--md-sys-color-surface-container: #F3EDF7;--md-sys-color-surface-bright: #FEF7FF;--md-sys-color-on-surface: #1C1B1F;--md-sys-color-on-surface-variant: #49454F;--md-sys-color-outline: #79747E;--md-sys-color-tertiary: #7D5260;--md-sys-color-scrim: #000000;--surface-container-highest: #E6E0E9}.qmx-hidden{display:none!important}.qmx-modal-open-scroll-lock{overflow:hidden!important}.is-dragging{transition:none!important}.qmx-flex-center{display:flex;align-items:center;justify-content:center}.qmx-flex-between{display:flex;align-items:center;justify-content:space-between}.qmx-flex-column{display:flex;flex-direction:column}.qmx-modal-base{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.95);z-index:10001;background-color:var(--md-sys-color-surface-bright);color:var(--md-sys-color-on-surface);border-radius:28px;box-shadow:0 12px 32px #00000080;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s,transform .3s}.qmx-modal-base.visible{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}.qmx-backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:var(--md-sys-color-scrim);z-index:9998;opacity:0;visibility:hidden;transition:opacity .3s ease}.qmx-backdrop.visible{opacity:.5;visibility:visible}.qmx-btn{padding:10px 16px;border:1px solid var(--md-sys-color-outline);background-color:transparent;color:var(--md-sys-color-primary);border-radius:20px;font-size:14px;font-weight:500;cursor:pointer;transition:background-color .2s,transform .2s,box-shadow .2s;-webkit-user-select:none;user-select:none}.qmx-btn:hover{background-color:#d0bcff1a;transform:translateY(-2px);box-shadow:0 2px 4px #0000001a}.qmx-btn:active{transform:translateY(0) scale(.98);box-shadow:none}.qmx-btn:disabled{opacity:.5;cursor:not-allowed}.qmx-btn--primary{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);border:none}.qmx-btn--primary:hover{background-color:#c2b3ff;box-shadow:0 4px 8px #0003}.qmx-btn--danger{border-color:#f44336;color:#f44336}.qmx-btn--danger:hover{background-color:#f443361a}.qmx-btn--icon{width:36px;height:36px;padding:0;border-radius:50%;background-color:#d0bcff26;border:none;color:var(--md-sys-color-primary)}.qmx-btn--icon:hover{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);transform:scale(1.05) rotate(180deg)}.qmx-styled-list{list-style:none;padding-left:0}.qmx-styled-list li{position:relative;padding-left:20px;margin-bottom:8px}.qmx-styled-list li:before{content:"◆";position:absolute;left:0;top:2px;color:var(--md-sys-color-primary);font-size:12px}.qmx-scrollbar::-webkit-scrollbar{width:10px}.qmx-scrollbar::-webkit-scrollbar-track{background:var(--md-sys-color-surface-bright);border-radius:10px}.qmx-scrollbar::-webkit-scrollbar-thumb{background-color:var(--md-sys-color-primary);border-radius:10px;border:2px solid var(--md-sys-color-surface-bright)}.qmx-scrollbar::-webkit-scrollbar-thumb:hover{background-color:#e0d1ff}.qmx-input{background-color:var(--md-sys-color-surface-container);border:1px solid var(--md-sys-color-outline);color:var(--md-sys-color-on-surface);border-radius:8px;padding:12px;width:100%;box-sizing:border-box;transition:box-shadow .2s,border-color .2s}.qmx-input:hover{border-color:var(--md-sys-color-primary)}.qmx-input:focus{outline:none;border-color:var(--md-sys-color-primary);box-shadow:0 0 0 2px #d0bcff4d}.qmx-input[type=number]::-webkit-inner-spin-button,.qmx-input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.qmx-input[type=number]{margin-left:5px;margin-bottom:9px;-moz-appearance:textfield;appearance:textfield}.qmx-fieldset-unit{position:relative;padding:0;margin:0;border:1px solid var(--md-sys-color-outline);border-radius:8px;background-color:var(--md-sys-color-surface-container);transition:border-color .2s,box-shadow .2s;width:100%;box-sizing:border-box}.qmx-fieldset-unit:hover{border-color:var(--md-sys-color-primary)}.qmx-fieldset-unit:focus-within{border-color:var(--md-sys-color-primary);box-shadow:0 0 0 2px #d0bcff4d}.qmx-fieldset-unit input[type=number]{border:none;background:none;outline:none;box-shadow:none;color:var(--md-sys-color-on-surface);padding:3px 10px 4px;width:100%;box-sizing:border-box}.qmx-fieldset-unit legend{padding:0 6px;font-size:12px;color:var(--md-sys-color-on-surface-variant);margin-left:auto;margin-right:12px;text-align:right;pointer-events:none}.qmx-toggle{position:relative;display:inline-block;width:52px;height:30px}.qmx-toggle input{opacity:0;width:0;height:0}.qmx-toggle .slider{position:absolute;cursor:pointer;inset:0;background-color:var(--md-sys-color-surface-container);border:1px solid var(--md-sys-color-outline);border-radius:30px;transition:background-color .3s,border-color .3s}.qmx-toggle .slider:before{position:absolute;content:"";height:22px;width:22px;left:3px;bottom:3px;background-color:var(--md-sys-color-on-surface-variant);border-radius:50%;box-shadow:0 1px 3px #0003;transition:all .3s cubic-bezier(.175,.885,.32,1.275)}.qmx-toggle input:checked+.slider{background-color:var(--md-sys-color-primary);border-color:var(--md-sys-color-primary)}.qmx-toggle input:checked+.slider:before{background-color:var(--md-sys-color-on-primary);transform:translate(22px)}.qmx-toggle:hover .slider{border-color:var(--md-sys-color-primary)}.qmx-select{position:relative;width:100%}.qmx-select-styled{position:relative;padding:10px 30px 10px 12px;background-color:var(--md-sys-color-surface-container);border:1px solid var(--md-sys-color-outline);border-radius:8px;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:inset 0 2px 4px #00000014}.qmx-select-styled:after{content:"";position:absolute;top:50%;right:12px;transform:translateY(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--md-sys-color-on-surface-variant);transition:transform .3s ease}.qmx-select:hover .qmx-select-styled{border-color:var(--md-sys-color-primary)}.qmx-select.active .qmx-select-styled{border-color:var(--md-sys-color-primary);box-shadow:inset 0 3px 6px #0000001a,0 0 0 2px #d0bcff4d}.qmx-select.active .qmx-select-styled:after{transform:translateY(-50%) rotate(180deg)}.qmx-select-options{position:absolute;top:105%;left:0;right:0;z-index:10;background-color:var(--md-sys-color-surface-bright);border:1px solid var(--md-sys-color-outline);border-radius:8px;max-height:0;overflow:hidden;opacity:0;transform:translateY(-10px);transition:all .3s ease;padding:4px 0}.qmx-select.active .qmx-select-options{max-height:200px;opacity:1;transform:translateY(0)}.qmx-select-options div{padding:10px 12px;cursor:pointer;transition:background-color .2s}.qmx-select-options div:hover{background-color:#d0bcff1a}.qmx-select-options div.selected{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);font-weight:500}.qmx-range-slider-wrapper{display:flex;flex-direction:column;gap:8px}.qmx-range-slider-container{position:relative;height:24px;display:flex;align-items:center}.qmx-range-slider-container input[type=range]{position:absolute;width:100%;height:4px;-webkit-appearance:none;appearance:none;background:none;pointer-events:none;margin:0}.qmx-range-slider-container input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;pointer-events:auto;width:20px;height:20px;background-color:var(--md-sys-color-primary);border-radius:50%;cursor:grab;border:none;box-shadow:0 1px 3px #0000004d;transition:transform .2s}.qmx-range-slider-container input[type=range]::-webkit-slider-thumb:active{cursor:grabbing;transform:scale(1.1)}.qmx-range-slider-container input[type=range]::-moz-range-thumb{pointer-events:auto;width:20px;height:20px;background-color:var(--md-sys-color-primary);border-radius:50%;cursor:grab;border:none;box-shadow:0 1px 3px #0000004d;transition:transform .2s}.qmx-range-slider-container input[type=range]::-moz-range-thumb:active{cursor:grabbing;transform:scale(1.1)}.qmx-range-slider-track-container{position:absolute;width:100%;height:4px;background-color:var(--md-sys-color-surface-container);border-radius:2px}.qmx-range-slider-progress{position:absolute;height:100%;background-color:var(--md-sys-color-primary);border-radius:2px}.qmx-range-slider-values{font-size:14px;color:var(--md-sys-color-primary);text-align:center;font-weight:500}.qmx-tooltip-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background-color:var(--md-sys-color-outline);color:var(--md-sys-color-surface-container);font-size:12px;font-weight:700;cursor:help;-webkit-user-select:none;user-select:none}#qmx-global-tooltip{position:fixed;background-color:var(--surface-container-highest);color:var(--md-sys-color-on-surface);padding:8px 12px;border-radius:8px;box-shadow:0 4px 12px #0003;font-size:12px;font-weight:400;line-height:1.5;z-index:10002;max-width:250px;opacity:0;visibility:hidden;transform:translateY(-5px);transition:opacity .2s ease,transform .2s ease,visibility .2s;pointer-events:none}#qmx-global-tooltip.visible{opacity:1;visibility:visible;transform:translateY(0)}.theme-switch{position:relative;display:block;width:60px;height:34px;cursor:pointer;transition:none}.theme-switch input{opacity:0;width:0;height:0}.theme-switch-wrapper{align-self:center}.slider-track{position:absolute;top:0;left:0;width:34px;height:34px;background-color:var(--surface-container-highest);border-radius:17px;box-shadow:inset 2px 2px 4px #0003,inset -2px -2px 4px #ffffff0d;transition:width .3s ease,left .3s ease,border-radius .3s ease,box-shadow .3s ease}.theme-switch:hover .slider-track{width:60px}.theme-switch input:checked+.slider-track{left:26px}.theme-switch:hover input:checked+.slider-track{left:0}.slider-dot{position:absolute;height:26px;width:26px;left:4px;top:4px;background-color:var(--md-sys-color-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 8px #0000004d;transition:transform .3s cubic-bezier(.4,0,.2,1),background-color .3s ease,box-shadow .3s ease}.theme-switch input:checked~.slider-dot{transform:translate(26px);background-color:var(--primary-container)}.slider-dot .icon{position:absolute;width:20px;height:20px;color:var(--md-sys-color-on-primary);transition:opacity .3s ease,transform .3s cubic-bezier(.4,0,.2,1)}.sun{opacity:1;transform:translateY(0) rotate(0)}.moon{opacity:0;transform:translateY(20px) rotate(-45deg)}.theme-switch input:checked~.slider-dot .sun{opacity:0;transform:translateY(-20px) rotate(45deg)}.theme-switch input:checked~.slider-dot .moon{opacity:1;transform:translateY(0) rotate(0);color:var(--md-sys-color-on-surface)}#douyu-qmx-starter-button{position:fixed;top:0;left:0;z-index:10000;background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);border:none;width:56px;height:56px;border-radius:16px;cursor:grab;box-shadow:0 4px 8px #0000004d;display:flex;align-items:center;justify-content:center;transform:translate3d(var(--tx, 0px),var(--ty, 0px),0) scale(1);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1);will-change:transform,opacity}#douyu-qmx-starter-button .icon{font-size:28px}#douyu-qmx-starter-button.hidden{opacity:0;transform:translate3d(var(--tx, 0px),var(--ty, 0px),0) scale(.5);pointer-events:none}#qmx-modal-container{background-color:var(--md-sys-color-surface-container);color:var(--md-sys-color-on-surface);display:flex;flex-direction:column}#qmx-modal-container.mode-floating,#qmx-modal-container.mode-centered{position:fixed;z-index:9999;width:335px;max-width:90vw;max-height:80vh;border-radius:28px;box-shadow:0 8px 24px #0006;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s,transform .2s ease-out;will-change:transform,opacity}#qmx-modal-container.visible{opacity:1;visibility:visible}#qmx-modal-container.mode-floating{top:0;left:0;transform:translate3d(var(--tx, 0px),var(--ty, 0px),0)}#qmx-modal-container.mode-floating .qmx-modal-header{cursor:move}#qmx-modal-container.mode-centered{top:50%;left:50%;transform:translate(-50%,-50%)}#qmx-modal-container.mode-inject-rank-list{position:relative;width:100%;flex:1;min-height:0;box-shadow:none;border-radius:0;transform:none!important}.qmx-modal-header{position:relative;padding:12px 20px 0;font-size:22px;font-weight:400;color:var(--md-sys-color-on-surface);-webkit-user-select:none;user-select:none;display:flex;align-items:center;justify-content:space-between}.qmx-modal-close-icon{width:36px;height:36px;background-color:#d0bcff26;border:none;border-radius:50%;cursor:pointer;transition:background-color .2s,transform .2s;position:relative;flex-shrink:0}.qmx-modal-close-icon:hover{background-color:var(--md-sys-color-primary);transform:scale(1.05) rotate(180deg)}.qmx-modal-close-icon:before,.qmx-modal-close-icon:after{content:"";position:absolute;top:50%;left:50%;width:16px;height:2px;background-color:var(--md-sys-color-primary);transition:background-color .2s ease-in-out}.qmx-modal-close-icon:hover:before,.qmx-modal-close-icon:hover:after{background-color:var(--md-sys-color-on-primary)}.qmx-modal-close-icon:before{transform:translate(-50%,-50%) rotate(45deg)}.qmx-modal-close-icon:after{transform:translate(-50%,-50%) rotate(-45deg)}.qmx-modal-content{padding:0 24px;flex:1;min-height:0;display:flex;flex-direction:column}.qmx-modal-content h3{flex-shrink:0;font-size:16px;font-weight:500;color:var(--md-sys-color-on-surface-variant);margin:0 0 8px}.qmx-stats-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:4px 0;-webkit-user-select:none;user-select:none;transition:background-color .2s;border-radius:8px}.qmx-stats-header:hover{background-color:#ffffff0d}.qmx-stats-header h3{font-size:16px;font-weight:500;color:var(--md-sys-color-on-surface-variant);margin:8px 0}.qmx-stats-arrow{font-size:12px;color:var(--md-sys-color-on-surface-variant);transition:transform .3s ease}.qmx-stats-header.expanded .qmx-stats-arrow{transform:rotate(180deg)}.qmx-stats-container{position:relative;overflow:hidden;padding:0}.qmx-stats-toggle{position:relative;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-user-select:none;user-select:none;transition:all .3s cubic-bezier(.25,.46,.45,.94);margin:4px 24px;border-radius:10px}.qmx-stats-indicator{font-size:15px;color:var(--md-sys-color-on-surface-variant);transition:all .3s cubic-bezier(.25,.46,.45,.94);position:absolute;z-index:2}.qmx-stats-label{font-size:12px;color:var(--md-sys-color-on-surface-variant);opacity:0;transform:scale(.95);transition:all .3s cubic-bezier(.25,.46,.45,.94);position:absolute;z-index:1;white-space:nowrap}.qmx-stats-refresh{opacity:0;font-size:15px;transition:all .3s cubic-bezier(.25,.46,.45,.94);position:relative}.qmx-stats-refresh.rotating{animation:rotate360 1s linear}@keyframes rotate360{0%{transform:rotate(0)}to{transform:rotate(360deg)}}.qmx-stats-switcher{opacity:0;font-size:20px;transition:all .3s cubic-bezier(.25,.46,.45,.94);margin:8px 8px 12px}.qmx-stats-toggle:hover{background-color:#ffffff0d;margin:4px 24px 21px}.qmx-stats-toggle:hover .qmx-stats-indicator{transform:translateY(85%)}.qmx-stats-toggle:hover .qmx-stats-label{opacity:1;transform:scale(1)}.qmx-stats-toggle.expanded{height:28px;padding:0 12px;margin:6px 20px}.qmx-stats-toggle.expanded .qmx-stats-indicator{opacity:1;transform:rotate(180deg) scale(1.05);position:relative;margin:9px}.qmx-stats-toggle.expanded .qmx-stats-indicator.transitioning{opacity:0}.qmx-stats-toggle.expanded .qmx-stats-label{opacity:1;transform:scale(1.05);font-size:12px;font-weight:500;position:relative;transition:all .3s cubic-bezier(.25,.46,.45,.94);color:var(--md-sys-color-on-surface)}.qmx-stats-toggle.expanded .qmx-stats-label.transitioning{opacity:0}.qmx-stats-toggle.expanded .qmx-stats-refresh{opacity:1;cursor:pointer;transform:scale(1.05);margin:8px}.qmx-stats-toggle.expanded .qmx-stats-refresh.disabled{opacity:0;transform:translate(100%)}.qmx-stats-toggle.expanded .qmx-stats-switcher{cursor:pointer;opacity:1;position:absolute}.qmx-stats-toggle.expanded #qmx-stats-left{left:60px}.qmx-stats-toggle.expanded #qmx-stats-right{right:60px}.qmx-stats-toggle.expanded .qmx-stats-switcher.disabled{cursor:not-allowed;color:#666}.qmx-stats-toggle.expanded #qmx-stats-left{transform:translate(-55px)}.qmx-stats-toggle.expanded #qmx-stats-right{transform:translate(55px)}.qmx-stats-content{max-height:0;opacity:0;overflow:hidden;transition:max-height .3s cubic-bezier(.25,.46,.45,.94),opacity .2s cubic-bezier(.25,.46,.45,.94) .1s,padding .3s cubic-bezier(.25,.46,.45,.94);padding:0 24px}.qmx-stats-content.expanded{max-height:120px;opacity:1;padding:8px 24px 16px}.qmx-modal-stats{display:flex;gap:1px}.qmx-modal-stats-child{background-color:var(--md-sys-color-surface-bright);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:8px;transition:background-color .2s,transform .3s ease,opacity .3s ease;width:88px;float:left;margin-left:2%}.qmx-stat-info-avg,.qmx-stat-info-total,.qmx-stat-info-receivedCount{display:flex;flex-direction:column;flex-grow:1;gap:4px;font-size:14px;overflow:hidden}.qmx-stat-header{display:flex;align-items:baseline;justify-content:center}.qmx-stat-nickname{font-weight:500;color:var(--md-sys-color-on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qmx-stat-details{opacity:1;display:flex;align-items:center;font-size:13px;color:var(--md-sys-color-on-surface-variant);transition:all .3s cubic-bezier(.25,.46,.45,.94);justify-content:center}.qmx-stat-details.transitioning{opacity:0}.qmx-stat-stats{font-weight:500}#qmx-tab-list{overflow-y:auto;flex-grow:1;padding-right:4px;margin-right:-4px}.qmx-tab-list-item{background-color:var(--md-sys-color-surface-bright);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:8px;transition:background-color .2s,transform .3s ease,opacity .3s ease}.qmx-tab-list-item:hover{background-color:#ffffff0d}.qmx-item-enter{opacity:0;transform:translate(20px)}.qmx-item-enter-active{opacity:1;transform:translate(0)}.qmx-item-exit-active{position:absolute;opacity:0;transform:scale(.8);transition:all .3s ease;z-index:-1;pointer-events:none}.qmx-tab-status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}.qmx-tab-info{display:flex;flex-direction:column;flex-grow:1;gap:4px;font-size:14px;overflow:hidden}.qmx-tab-header{display:flex;align-items:baseline;justify-content:space-between}.qmx-tab-nickname{font-weight:500;color:var(--md-sys-color-on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qmx-tab-room-id{font-size:12px;color:var(--md-sys-color-on-surface-variant);opacity:.7}.qmx-tab-details{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--md-sys-color-on-surface-variant)}.qmx-tab-status-name{font-weight:500}.qmx-tab-close-btn{flex-shrink:0;background:none;border:none;color:var(--md-sys-color-on-surface-variant);font-size:20px;cursor:pointer;padding:0 4px;line-height:1;opacity:.6;transition:opacity .2s,color .2s,transform .2s}.qmx-tab-close-btn:hover{opacity:1;color:#f44336;transform:scale(1.1)}.qmx-modal-footer{padding:16px 24px;display:flex;gap:8px}#qmx-settings-modal{width:500px;max-width:95vw}.qmx-settings-header{padding:12px 24px;border-bottom:1px solid var(--md-sys-color-outline);flex-shrink:0}.qmx-settings-tabs{display:flex;gap:8px}.qmx-settings-tabs .tab-link{padding:8px 16px;border:none;background:none;color:var(--md-sys-color-on-surface-variant);cursor:pointer;border-radius:8px;transition:background-color .2s,color .2s;font-size:14px}.qmx-settings-tabs .tab-link:hover{background-color:#ffffff0d}.qmx-settings-tabs .tab-link.active{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);font-weight:500}.qmx-settings-content{padding:16px 24px;flex-grow:1;overflow-y:auto;overflow-x:hidden;max-height:60vh;scrollbar-gutter:stable}.qmx-settings-content .tab-content{display:none}.qmx-settings-content .tab-content.active{display:block}.qmx-settings-footer{padding:16px 24px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--md-sys-color-outline);flex-shrink:0}.qmx-settings-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;align-items:start}.qmx-settings-item{display:flex;flex-direction:column;justify-content:center;gap:8px}.qmx-settings-item label{font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px}.qmx-settings-item small{font-size:12px;color:var(--md-sys-color-on-surface-variant);opacity:.8}.qmx-settings-warning{padding:12px;background-color:#f4433633;border:1px solid #F44336;color:#efb8c8;border-radius:8px;grid-column:1 / -1}#tab-about{line-height:1.7;font-size:14px}#tab-about h4{color:var(--md-sys-color-primary);font-size:16px;font-weight:500;margin-top:20px;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--md-sys-color-outline)}#tab-about h4:first-child{margin-top:0}#tab-about p{margin-bottom:10px;color:var(--md-sys-color-on-surface-variant)}#tab-about .version-tag{display:inline-block;background-color:var(--md-sys-color-tertiary);color:var(--md-sys-color-on-primary);padding:2px 8px;border-radius:12px;font-size:13px;font-weight:500;margin-left:8px}#tab-about a{color:var(--md-sys-color-tertiary);text-decoration:none;font-weight:500;transition:color .2s}#tab-about a:hover{color:#ffd6e1;text-decoration:underline}#qmx-notice-modal{width:450px;max-width:90vw}#qmx-notice-modal .qmx-modal-content{padding:16px 24px}#qmx-notice-modal .qmx-modal-content p{margin-bottom:12px;line-height:1.6;font-size:15px;color:var(--md-sys-color-on-surface-variant)}#qmx-notice-modal .qmx-modal-content ul{margin:12px 0;padding-left:20px}#qmx-notice-modal .qmx-modal-content li{margin-bottom:10px;position:relative;font-size:15px;line-height:1.6}#qmx-notice-modal .qmx-modal-content li:before{content:"◆";position:absolute;left:-18px;color:var(--md-sys-color-primary);font-size:12px}#qmx-notice-modal h3{font-size:20px;font-weight:500;margin:0}#qmx-notice-modal h4{color:var(--md-sys-color-primary);font-size:16px;font-weight:500;margin-top:16px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--md-sys-color-outline)}#qmx-notice-modal .qmx-warning-text{background-color:#ffc1071a;border-left:4px solid #FFC107;padding:12px 16px;margin:16px 0;border-radius:4px;font-size:15px;line-height:1.6}#qmx-notice-modal .qmx-warning-text strong{color:#ff8f00}#qmx-notice-modal a{color:var(--md-sys-color-tertiary);text-decoration:none;font-weight:500;transition:color .2s}#qmx-notice-modal a:hover{color:#ffd6e1;text-decoration:underline}#qmx-modal-backdrop,#qmx-notice-backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:var(--md-sys-color-scrim);z-index:9998;opacity:0;visibility:hidden;transition:opacity .3s ease}#qmx-modal-backdrop.visible,#qmx-notice-backdrop.visible{opacity:.5;visibility:visible}#qmx-settings-modal,#qmx-notice-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.95);z-index:10001;background-color:var(--md-sys-color-surface-bright);color:var(--md-sys-color-on-surface);border-radius:28px;box-shadow:0 12px 32px #00000080;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s,transform .3s}#qmx-settings-modal.visible,#qmx-notice-modal.visible{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}.qmx-modal-btn{flex-grow:1;padding:10px 16px;border:1px solid var(--md-sys-color-outline);background-color:transparent;color:var(--md-sys-color-primary);border-radius:20px;font-size:14px;font-weight:500;cursor:pointer;transition:background-color .2s,transform .2s,box-shadow .2s;-webkit-user-select:none;user-select:none}.qmx-modal-btn:hover{background-color:#d0bcff1a;transform:translateY(-2px);box-shadow:0 2px 4px #0000001a}.qmx-modal-btn:active{transform:translateY(0) scale(.98);box-shadow:none}.qmx-modal-btn:disabled{opacity:.5;cursor:not-allowed}.qmx-modal-btn.primary{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);border:none}.qmx-modal-btn.primary:hover{background-color:#c2b3ff;box-shadow:0 4px 8px #0003}.qmx-modal-btn.danger{border-color:#f44336;color:#f44336}.qmx-modal-btn.danger:hover{background-color:#f443361a}.qmx-modal-content::-webkit-scrollbar,.qmx-settings-content::-webkit-scrollbar{width:10px}.qmx-modal-content::-webkit-scrollbar-track,.qmx-settings-content::-webkit-scrollbar-track{background:var(--md-sys-color-surface-bright);border-radius:10px}.qmx-modal-content::-webkit-scrollbar-thumb,.qmx-settings-content::-webkit-scrollbar-thumb{background-color:var(--md-sys-color-primary);border-radius:10px;border:2px solid var(--md-sys-color-surface-bright)}.qmx-modal-content::-webkit-scrollbar-thumb:hover,.qmx-settings-content::-webkit-scrollbar-thumb:hover{background-color:#e0d1ff}';
+  const ControlPanelRefactoredCss = ':root{color-scheme:light dark;--motion-easing: cubic-bezier(.4, 0, .2, 1);--status-color-waiting: #4CAF50;--status-color-claiming: #2196F3;--status-color-switching: #FFC107;--status-color-error: #F44336;--status-color-opening: #9C27B0;--status-color-dormant: #757575;--status-color-unresponsive: #FFA000;--status-color-disconnected: #BDBDBD;--status-color-stalled: #9af39dff}body[data-theme=dark]{--md-sys-color-primary: #D0BCFF;--md-sys-color-on-primary: #381E72;--md-sys-color-primary-container: #4F378B;--md-sys-color-on-primary-container: #EADDFF;--md-sys-color-surface-container: #211F26;--md-sys-color-on-surface: #E6E1E5;--md-sys-color-on-surface-variant: #CAC4D0;--md-sys-color-outline: #938F99;--md-sys-color-surface-bright: #36343B;--md-sys-color-tertiary: #EFB8C8;--md-sys-color-scrim: #000000;--surface-container-highest: #3D3B42}body[data-theme=light]{--md-sys-color-primary: #6750A4;--md-sys-color-on-primary: #FFFFFF;--md-sys-color-primary-container: #EADDFF;--md-sys-color-on-primary-container: #21005D;--md-sys-color-surface-container: #F3EDF7;--md-sys-color-surface-bright: #FEF7FF;--md-sys-color-on-surface: #1C1B1F;--md-sys-color-on-surface-variant: #49454F;--md-sys-color-outline: #79747E;--md-sys-color-tertiary: #7D5260;--md-sys-color-scrim: #000000;--surface-container-highest: #E6E0E9}.qmx-hidden{display:none!important}.qmx-modal-open-scroll-lock{overflow:hidden!important}.is-dragging{transition:none!important}.qmx-flex-center{display:flex;align-items:center;justify-content:center}.qmx-flex-between{display:flex;align-items:center;justify-content:space-between}.qmx-flex-column{display:flex;flex-direction:column}.qmx-modal-base{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.95);z-index:10001;background-color:var(--md-sys-color-surface-bright);color:var(--md-sys-color-on-surface);border-radius:28px;box-shadow:0 12px 32px #00000080;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s,transform .3s}.qmx-modal-base.visible{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}.qmx-backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:var(--md-sys-color-scrim);z-index:9998;opacity:0;visibility:hidden;transition:opacity .3s ease}.qmx-backdrop.visible{opacity:.5;visibility:visible}.qmx-btn{padding:10px 16px;border:1px solid var(--md-sys-color-outline);background-color:transparent;color:var(--md-sys-color-primary);border-radius:20px;font-size:14px;font-weight:500;cursor:pointer;transition:background-color .2s,transform .2s,box-shadow .2s;-webkit-user-select:none;user-select:none}.qmx-btn:hover{background-color:#d0bcff1a;transform:translateY(-2px);box-shadow:0 2px 4px #0000001a}.qmx-btn:active{transform:translateY(0) scale(.98);box-shadow:none}.qmx-btn:disabled{opacity:.5;cursor:not-allowed}.qmx-btn--primary{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);border:none}.qmx-btn--primary:hover{background-color:#c2b3ff;box-shadow:0 4px 8px #0003}.qmx-btn--danger{border-color:#f44336;color:#f44336}.qmx-btn--danger:hover{background-color:#f443361a}.qmx-btn--icon{width:36px;height:36px;padding:0;border-radius:50%;background-color:#d0bcff26;border:none;color:var(--md-sys-color-primary)}.qmx-btn--icon:hover{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);transform:scale(1.05) rotate(180deg)}.qmx-styled-list{list-style:none;padding-left:0}.qmx-styled-list li{position:relative;padding-left:20px;margin-bottom:8px}.qmx-styled-list li:before{content:"◆";position:absolute;left:0;top:2px;color:var(--md-sys-color-primary);font-size:12px}.qmx-scrollbar::-webkit-scrollbar{width:10px}.qmx-scrollbar::-webkit-scrollbar-track{background:var(--md-sys-color-surface-bright);border-radius:10px}.qmx-scrollbar::-webkit-scrollbar-thumb{background-color:var(--md-sys-color-primary);border-radius:10px;border:2px solid var(--md-sys-color-surface-bright)}.qmx-scrollbar::-webkit-scrollbar-thumb:hover{background-color:#e0d1ff}.qmx-input{background-color:var(--md-sys-color-surface-container);border:1px solid var(--md-sys-color-outline);color:var(--md-sys-color-on-surface);border-radius:8px;padding:12px;width:100%;box-sizing:border-box;transition:box-shadow .2s,border-color .2s}.qmx-input:hover{border-color:var(--md-sys-color-primary)}.qmx-input:focus{outline:none;border-color:var(--md-sys-color-primary);box-shadow:0 0 0 2px #d0bcff4d}.qmx-input[type=number]::-webkit-inner-spin-button,.qmx-input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}.qmx-input[type=number]{margin-left:5px;margin-bottom:9px;-moz-appearance:textfield;appearance:textfield}.qmx-fieldset-unit{position:relative;padding:0;margin:0;border:1px solid var(--md-sys-color-outline);border-radius:8px;background-color:var(--md-sys-color-surface-container);transition:border-color .2s,box-shadow .2s;width:100%;box-sizing:border-box}.qmx-fieldset-unit:hover{border-color:var(--md-sys-color-primary)}.qmx-fieldset-unit:focus-within{border-color:var(--md-sys-color-primary);box-shadow:0 0 0 2px #d0bcff4d}.qmx-fieldset-unit input[type=number]{border:none;background:none;outline:none;box-shadow:none;color:var(--md-sys-color-on-surface);padding:3px 10px 4px;width:100%;box-sizing:border-box}.qmx-fieldset-unit legend{padding:0 6px;font-size:12px;color:var(--md-sys-color-on-surface-variant);margin-left:auto;margin-right:12px;text-align:right;pointer-events:none}.qmx-toggle{position:relative;display:inline-block;width:52px;height:30px}.qmx-toggle input{opacity:0;width:0;height:0}.qmx-toggle .slider{position:absolute;cursor:pointer;inset:0;background-color:var(--md-sys-color-surface-container);border:1px solid var(--md-sys-color-outline);border-radius:30px;transition:background-color .3s,border-color .3s}.qmx-toggle .slider:before{position:absolute;content:"";height:22px;width:22px;left:3px;bottom:3px;background-color:var(--md-sys-color-on-surface-variant);border-radius:50%;box-shadow:0 1px 3px #0003;transition:all .3s cubic-bezier(.175,.885,.32,1.275)}.qmx-toggle input:checked+.slider{background-color:var(--md-sys-color-primary);border-color:var(--md-sys-color-primary)}.qmx-toggle input:checked+.slider:before{background-color:var(--md-sys-color-on-primary);transform:translate(22px)}.qmx-toggle:hover .slider{border-color:var(--md-sys-color-primary)}.qmx-select{position:relative;width:100%}.qmx-select-styled{position:relative;padding:10px 30px 10px 12px;background-color:var(--md-sys-color-surface-container);border:1px solid var(--md-sys-color-outline);border-radius:8px;cursor:pointer;transition:all .2s;-webkit-user-select:none;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:inset 0 2px 4px #00000014}.qmx-select-styled:after{content:"";position:absolute;top:50%;right:12px;transform:translateY(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--md-sys-color-on-surface-variant);transition:transform .3s ease}.qmx-select:hover .qmx-select-styled{border-color:var(--md-sys-color-primary)}.qmx-select.active .qmx-select-styled{border-color:var(--md-sys-color-primary);box-shadow:inset 0 3px 6px #0000001a,0 0 0 2px #d0bcff4d}.qmx-select.active .qmx-select-styled:after{transform:translateY(-50%) rotate(180deg)}.qmx-select-options{position:absolute;top:105%;left:0;right:0;z-index:10;background-color:var(--md-sys-color-surface-bright);border:1px solid var(--md-sys-color-outline);border-radius:8px;max-height:0;overflow:hidden;opacity:0;transform:translateY(-10px);transition:all .3s ease;padding:4px 0}.qmx-select.active .qmx-select-options{max-height:200px;opacity:1;transform:translateY(0)}.qmx-select-options div{padding:10px 12px;cursor:pointer;transition:background-color .2s}.qmx-select-options div:hover{background-color:#d0bcff1a}.qmx-select-options div.selected{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);font-weight:500}.qmx-range-slider-wrapper{display:flex;flex-direction:column;gap:8px}.qmx-range-slider-container{position:relative;height:24px;display:flex;align-items:center}.qmx-range-slider-container input[type=range]{position:absolute;width:100%;height:4px;-webkit-appearance:none;appearance:none;background:none;pointer-events:none;margin:0}.qmx-range-slider-container input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;pointer-events:auto;width:20px;height:20px;background-color:var(--md-sys-color-primary);border-radius:50%;cursor:grab;border:none;box-shadow:0 1px 3px #0000004d;transition:transform .2s}.qmx-range-slider-container input[type=range]::-webkit-slider-thumb:active{cursor:grabbing;transform:scale(1.1)}.qmx-range-slider-container input[type=range]::-moz-range-thumb{pointer-events:auto;width:20px;height:20px;background-color:var(--md-sys-color-primary);border-radius:50%;cursor:grab;border:none;box-shadow:0 1px 3px #0000004d;transition:transform .2s}.qmx-range-slider-container input[type=range]::-moz-range-thumb:active{cursor:grabbing;transform:scale(1.1)}.qmx-range-slider-track-container{position:absolute;width:100%;height:4px;background-color:var(--md-sys-color-surface-container);border-radius:2px}.qmx-range-slider-progress{position:absolute;height:100%;background-color:var(--md-sys-color-primary);border-radius:2px}.qmx-range-slider-values{font-size:14px;color:var(--md-sys-color-primary);text-align:center;font-weight:500}.qmx-tooltip-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background-color:var(--md-sys-color-outline);color:var(--md-sys-color-surface-container);font-size:12px;font-weight:700;cursor:help;-webkit-user-select:none;user-select:none}#qmx-global-tooltip{position:fixed;background-color:var(--surface-container-highest);color:var(--md-sys-color-on-surface);padding:8px 12px;border-radius:8px;box-shadow:0 4px 12px #0003;font-size:12px;font-weight:400;line-height:1.5;z-index:10002;max-width:250px;opacity:0;visibility:hidden;transform:translateY(-5px);transition:opacity .2s ease,transform .2s ease,visibility .2s;pointer-events:none}#qmx-global-tooltip.visible{opacity:1;visibility:visible;transform:translateY(0)}.theme-switch{position:relative;display:block;width:60px;height:34px;cursor:pointer;transition:none}.theme-switch input{opacity:0;width:0;height:0}.theme-switch-wrapper{align-self:center}.slider-track{position:absolute;top:0;left:0;width:34px;height:34px;background-color:var(--surface-container-highest);border-radius:17px;box-shadow:inset 2px 2px 4px #0003,inset -2px -2px 4px #ffffff0d;transition:width .3s ease,left .3s ease,border-radius .3s ease,box-shadow .3s ease}.theme-switch:hover .slider-track{width:60px}.theme-switch input:checked+.slider-track{left:26px}.theme-switch:hover input:checked+.slider-track{left:0}.slider-dot{position:absolute;height:26px;width:26px;left:4px;top:4px;background-color:var(--md-sys-color-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 4px 8px #0000004d;transition:transform .3s cubic-bezier(.4,0,.2,1),background-color .3s ease,box-shadow .3s ease}.theme-switch input:checked~.slider-dot{transform:translate(26px);background-color:var(--primary-container)}.slider-dot .icon{position:absolute;width:20px;height:20px;color:var(--md-sys-color-on-primary);transition:opacity .3s ease,transform .3s cubic-bezier(.4,0,.2,1)}.sun{opacity:1;transform:translateY(0) rotate(0)}.moon{opacity:0;transform:translateY(20px) rotate(-45deg)}.theme-switch input:checked~.slider-dot .sun{opacity:0;transform:translateY(-20px) rotate(45deg)}.theme-switch input:checked~.slider-dot .moon{opacity:1;transform:translateY(0) rotate(0);color:var(--md-sys-color-on-surface)}#douyu-qmx-starter-button{position:fixed;top:0;left:0;z-index:10000;background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);border:none;width:56px;height:56px;border-radius:16px;cursor:grab;box-shadow:0 4px 8px #0000004d;display:flex;align-items:center;justify-content:center;transform:translate3d(var(--tx, 0px),var(--ty, 0px),0) scale(1);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1);will-change:transform,opacity}#douyu-qmx-starter-button .icon{font-size:28px}#douyu-qmx-starter-button.hidden{opacity:0;transform:translate3d(var(--tx, 0px),var(--ty, 0px),0) scale(.5);pointer-events:none}#qmx-modal-container{background-color:var(--md-sys-color-surface-container);color:var(--md-sys-color-on-surface);display:flex;flex-direction:column}#qmx-modal-container.mode-floating,#qmx-modal-container.mode-centered{position:fixed;z-index:9999;width:335px;max-width:90vw;max-height:80vh;border-radius:28px;box-shadow:0 8px 24px #0006;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s,transform .2s ease-out;will-change:transform,opacity}#qmx-modal-container.visible{opacity:1;visibility:visible}#qmx-modal-container.mode-floating{top:0;left:0;transform:translate3d(var(--tx, 0px),var(--ty, 0px),0)}#qmx-modal-container.mode-floating .qmx-modal-header{cursor:move}#qmx-modal-container.mode-centered{top:50%;left:50%;transform:translate(-50%,-50%)}#qmx-modal-container.mode-inject-rank-list{position:relative;width:100%;flex:1;min-height:0;box-shadow:none;border-radius:0;transform:none!important}.qmx-modal-header{position:relative;padding:10px 20px 4px;font-size:20px;font-weight:400;color:var(--md-sys-color-on-surface);-webkit-user-select:none;user-select:none;display:flex;align-items:center;justify-content:space-between}.qmx-modal-close-icon{width:36px;height:36px;background-color:#d0bcff26;border:none;border-radius:50%;cursor:pointer;transition:background-color .2s,transform .2s;position:relative;flex-shrink:0}.qmx-modal-close-icon:hover{background-color:var(--md-sys-color-primary);transform:scale(1.05) rotate(180deg)}.qmx-modal-close-icon:before,.qmx-modal-close-icon:after{content:"";position:absolute;top:50%;left:50%;width:16px;height:2px;background-color:var(--md-sys-color-primary);transition:background-color .2s ease-in-out}.qmx-modal-close-icon:hover:before,.qmx-modal-close-icon:hover:after{background-color:var(--md-sys-color-on-primary)}.qmx-modal-close-icon:before{transform:translate(-50%,-50%) rotate(45deg)}.qmx-modal-close-icon:after{transform:translate(-50%,-50%) rotate(-45deg)}.qmx-modal-content{padding:0 24px;flex:1;min-height:0;display:flex;flex-direction:column}.qmx-modal-content h3{flex-shrink:0;font-size:16px;font-weight:500;color:var(--md-sys-color-on-surface-variant);margin:0 0 8px}.qmx-stats-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:4px 0;-webkit-user-select:none;user-select:none;transition:background-color .2s;border-radius:8px}.qmx-stats-header:hover{background-color:#ffffff0d}.qmx-stats-header h3{font-size:16px;font-weight:500;color:var(--md-sys-color-on-surface-variant);margin:8px 0}.qmx-stats-arrow{font-size:12px;color:var(--md-sys-color-on-surface-variant);transition:transform .3s ease}.qmx-stats-header.expanded .qmx-stats-arrow{transform:rotate(180deg)}.qmx-stats-container{position:relative;overflow:hidden;padding:0}.qmx-stats-toggle{position:relative;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-user-select:none;user-select:none;transition:all .3s cubic-bezier(.25,.46,.45,.94);margin:4px 24px;border-radius:10px}.qmx-stats-indicator{font-size:15px;color:var(--md-sys-color-on-surface-variant);transition:all .3s cubic-bezier(.25,.46,.45,.94);position:absolute;z-index:2}.qmx-stats-label{font-size:12px;color:var(--md-sys-color-on-surface-variant);opacity:0;transform:scale(.95);transition:all .3s cubic-bezier(.25,.46,.45,.94);position:absolute;z-index:1;white-space:nowrap}.qmx-stats-refresh{opacity:0;font-size:15px;transition:all .3s cubic-bezier(.25,.46,.45,.94);position:relative;background:transparent;border:none;color:var(--md-sys-color-on-surface-variant);padding:4px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer}.qmx-stats-refresh:hover{background-color:#ffffff1a;color:var(--md-sys-color-primary)}.qmx-stats-refresh svg{width:20px;height:20px}.qmx-stats-refresh.rotating{animation:rotate360 1s linear}@keyframes rotate360{0%{transform:rotate(0)}to{transform:rotate(360deg)}}.qmx-stats-switcher{opacity:0;font-size:20px;transition:all .3s cubic-bezier(.25,.46,.45,.94);margin:8px 8px 12px}.qmx-stats-toggle:hover{background-color:#ffffff0d;margin:4px 24px 21px}.qmx-stats-toggle:hover .qmx-stats-indicator{transform:translateY(85%)}.qmx-stats-toggle:hover .qmx-stats-label{opacity:1;transform:scale(1)}.qmx-stats-toggle.expanded{height:28px;padding:0 12px;margin:6px 20px}.qmx-stats-toggle.expanded .qmx-stats-indicator{opacity:1;transform:rotate(180deg) scale(1.05);position:relative;margin:9px}.qmx-stats-toggle.expanded .qmx-stats-indicator.transitioning{opacity:0}.qmx-stats-toggle.expanded .qmx-stats-label{opacity:1;transform:scale(1.05);font-size:12px;font-weight:500;position:relative;transition:all .3s cubic-bezier(.25,.46,.45,.94);color:var(--md-sys-color-on-surface)}.qmx-stats-toggle.expanded .qmx-stats-label.transitioning{opacity:0}.qmx-stats-toggle.expanded .qmx-stats-refresh{opacity:1;cursor:pointer;transform:scale(1.05);margin:8px}.qmx-stats-toggle.expanded .qmx-stats-refresh.disabled{opacity:0;transform:translate(100%)}.qmx-stats-toggle.expanded .qmx-stats-switcher{cursor:pointer;opacity:1;position:absolute}.qmx-stats-toggle.expanded #qmx-stats-left{left:60px;transform:translate(-55px)}.qmx-stats-toggle.expanded #qmx-stats-right{right:60px;transform:translate(55px)}.qmx-stats-toggle.expanded .qmx-stats-switcher.disabled{cursor:not-allowed;color:#666}.qmx-stats-content{max-height:0;opacity:0;overflow:hidden;transition:max-height .3s cubic-bezier(.25,.46,.45,.94),opacity .2s cubic-bezier(.25,.46,.45,.94) .1s,padding .3s cubic-bezier(.25,.46,.45,.94);padding:0 24px}.qmx-stats-content.expanded{max-height:120px;opacity:1;padding:8px 24px 16px}.qmx-modal-stats{display:flex;gap:1px}.qmx-modal-stats-child{background-color:var(--md-sys-color-surface-bright);border-radius:12px;padding:12px 16px;margin-bottom:8px;display:flex;align-items:center;gap:8px;transition:background-color .2s,transform .3s ease,opacity .3s ease;width:88px;float:left;margin-left:2%}.qmx-stat-info-avg,.qmx-stat-info-total,.qmx-stat-info-receivedCount{display:flex;flex-direction:column;flex-grow:1;gap:4px;font-size:14px;overflow:hidden}.qmx-stat-header{display:flex;align-items:baseline;justify-content:center}.qmx-stat-nickname{font-weight:500;color:var(--md-sys-color-on-surface);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:auto!important}.qmx-stat-details{opacity:1;display:flex;align-items:center;font-size:13px;color:var(--md-sys-color-on-surface-variant);transition:all .3s cubic-bezier(.25,.46,.45,.94);justify-content:center;flex-wrap:wrap}.qmx-stat-details.transitioning{opacity:0}.qmx-stat-stats{font-weight:500}#qmx-tab-list{overflow-y:auto;flex-grow:1;padding-right:4px;margin-right:-4px}.qmx-tab-list-item{background-color:var(--md-sys-color-surface-bright);border-radius:16px;padding:8px 16px 8px 18px;margin-bottom:8px;display:flex;align-items:center;gap:12px;transition:background-color .2s,transform .3s ease,opacity .3s ease;position:relative;overflow:hidden}.qmx-tab-list-item:hover{background-color:var(--surface-container-highest)}.qmx-item-enter{opacity:0;transform:translate(20px)}.qmx-item-enter-active{opacity:1;transform:translate(0)}.qmx-item-exit-active{position:absolute;opacity:0;transform:scale(.8);transition:all .3s ease;z-index:-1;pointer-events:none}.qmx-tab-status-dot{position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:28px;border-radius:0 4px 4px 0;transition:all .3s cubic-bezier(.25,.46,.45,.94);flex-shrink:0}.qmx-tab-list-item:hover .qmx-tab-status-dot{height:32px;width:3px}.qmx-tab-info{display:flex;flex-direction:column;flex-grow:1;gap:2px;font-size:14px;overflow:hidden;min-width:0}.qmx-tab-header{display:flex;align-items:center;justify-content:flex-start;height:auto;overflow:visible;margin-bottom:2px}.qmx-tab-identity{position:relative;display:inline-flex;align-items:center;gap:0;padding:2px 4px;border-radius:999px;border:1px solid var(--md-sys-color-on-surface-variant);background-color:var(--md-sys-color-surface-bright);color:var(--md-sys-color-on-surface);font-size:13px;font-weight:500;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease,padding-left .2s ease;overflow:visible}.qmx-tab-identity:hover{padding-left:24px;border-color:var(--md-sys-color-primary);box-shadow:0 6px 16px #00000040}.qmx-tab-identity.copied{border-color:var(--status-color-waiting);box-shadow:0 0 0 2px #4caf5033}.qmx-tab-identity-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%) translate(-100%);width:14px;height:14px;color:var(--md-sys-color-primary);opacity:0;transition:opacity .2s ease,transform .2s ease;pointer-events:none;z-index:10}.qmx-tab-identity:hover .qmx-tab-identity-icon{opacity:1;transform:translateY(-50%) translate(0);pointer-events:auto;cursor:pointer}.qmx-tab-identity-text{display:inline-flex;flex-direction:column;position:relative;overflow:hidden;pointer-events:none;min-width:0}.qmx-tab-identity-text span{transition:transform .25s ease,opacity .2s ease;white-space:nowrap;text-align:left}.qmx-tab-identity[data-state=nickname] .identity-roomid,.qmx-tab-identity[data-state=room] .identity-nickname{transform:translateY(-100%);opacity:0;position:absolute;left:0;top:0}.qmx-tab-identity[data-state=nickname] .identity-nickname,.qmx-tab-identity[data-state=room] .identity-roomid{position:relative;transform:translateY(0);opacity:1}.qmx-tab-details{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--md-sys-color-on-surface-variant);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.qmx-tab-prizes{display:flex;align-items:center;gap:4px;margin-left:auto;padding:4px 8px;background-color:var(--md-sys-color-surface-container, rgba(0, 0, 0, .05));flex-shrink:0}.qmx-tab-prizes.single-prize{flex-direction:row;border-radius:100px}.qmx-tab-prizes.multi-prizes{flex-direction:column;border-radius:12px;min-width:70px;padding:6px 10px}.qmx-tab-prize-item{display:inline-flex;align-items:center;gap:4px;background:transparent;padding:0;border:none;line-height:1;color:var(--md-sys-color-on-surface);font-weight:500;font-size:11px}.qmx-tab-prize-item:hover{opacity:.8}.qmx-tab-prize-item svg{display:block;width:12px;height:12px;flex-shrink:0}.qmx-tab-prize-text{font-weight:600;white-space:nowrap;color:inherit;font-size:11px;display:flex;align-items:center}.qmx-tab-close-btn{flex-shrink:0;background-color:#d0bcff26;border:none;color:var(--md-sys-color-primary);cursor:pointer;padding:0;transition:background-color .2s,transform .2s,color .2s;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%}.qmx-tab-close-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:3}.qmx-tab-close-btn:hover{color:var(--md-sys-color-on-primary);background-color:var(--md-sys-color-primary);transform:scale(1.1) rotate(90deg)}.qmx-modal-footer{padding:16px 24px;display:flex;gap:8px}.qmx-modal-btn:hover{background-color:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);transform:translateY(-2px);box-shadow:0 2px 4px #0000001a}.qmx-modal-btn.primary:hover{background-color:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container);box-shadow:0 4px 8px #0003}.qmx-modal-btn.danger{border-color:var(--status-color-error);color:var(--status-color-error)}.qmx-modal-btn.danger:hover{background-color:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)}.qmx-tab-header.show-id .qmx-tab-nickname{pointer-events:none!important}.qmx-tab-header.show-id .qmx-tab-room-id{pointer-events:auto!important}#qmx-settings-modal{width:500px;max-width:95vw}.qmx-settings-header{padding:12px 24px;border-bottom:1px solid var(--md-sys-color-outline);flex-shrink:0}.qmx-settings-tabs{display:flex;gap:8px}.qmx-settings-tabs .tab-link{padding:8px 16px;border:none;background:none;color:var(--md-sys-color-on-surface-variant);cursor:pointer;border-radius:8px;transition:background-color .2s,color .2s;font-size:14px}.qmx-settings-tabs .tab-link:hover{background-color:#ffffff0d}.qmx-settings-tabs .tab-link.active{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);font-weight:500}.qmx-settings-content{padding:16px 24px;flex-grow:1;overflow-y:auto;overflow-x:hidden;max-height:60vh;scrollbar-gutter:stable}.qmx-settings-content .tab-content{display:none}.qmx-settings-content .tab-content.active{display:block}.qmx-settings-footer{padding:16px 24px;display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--md-sys-color-outline);flex-shrink:0}.qmx-settings-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;align-items:start}.qmx-settings-item{display:flex;flex-direction:column;justify-content:center;gap:8px}.qmx-settings-item label{font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px}.qmx-settings-item small{font-size:12px;color:var(--md-sys-color-on-surface-variant);opacity:.8}.qmx-settings-warning{padding:12px;background-color:#f4433633;border:1px solid #F44336;color:#efb8c8;border-radius:8px;grid-column:1 / -1}#tab-about{line-height:1.7;font-size:14px}#tab-about h4{color:var(--md-sys-color-primary);font-size:16px;font-weight:500;margin-top:20px;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--md-sys-color-outline)}#tab-about h4:first-child{margin-top:0}#tab-about p{margin-bottom:10px;color:var(--md-sys-color-on-surface-variant)}#tab-about .version-tag{display:inline-block;background-color:var(--md-sys-color-tertiary);color:var(--md-sys-color-on-primary);padding:2px 8px;border-radius:12px;font-size:13px;font-weight:500;margin-left:8px}#tab-about a{color:var(--md-sys-color-tertiary);text-decoration:none;font-weight:500;transition:color .2s}#tab-about a:hover{color:#ffd6e1;text-decoration:underline}#qmx-notice-modal{width:450px;max-width:90vw}#qmx-notice-modal .qmx-modal-content{padding:16px 24px}#qmx-notice-modal .qmx-modal-content p{margin-bottom:12px;line-height:1.6;font-size:15px;color:var(--md-sys-color-on-surface-variant)}#qmx-notice-modal .qmx-modal-content ul{margin:12px 0;padding-left:20px}#qmx-notice-modal .qmx-modal-content li{margin-bottom:10px;position:relative;font-size:15px;line-height:1.6}#qmx-notice-modal .qmx-modal-content li:before{content:"◆";position:absolute;left:-18px;color:var(--md-sys-color-primary);font-size:12px}#qmx-notice-modal h3{font-size:20px;font-weight:500;margin:0}#qmx-notice-modal h4{color:var(--md-sys-color-primary);font-size:16px;font-weight:500;margin-top:16px;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--md-sys-color-outline)}#qmx-notice-modal .qmx-warning-text{background-color:#ffc1071a;border-left:4px solid #FFC107;padding:12px 16px;margin:16px 0;border-radius:4px;font-size:15px;line-height:1.6}#qmx-notice-modal .qmx-warning-text strong{color:#ff8f00}#qmx-notice-modal a{color:var(--md-sys-color-tertiary);text-decoration:none;font-weight:500;transition:color .2s}#qmx-notice-modal a:hover{color:#ffd6e1;text-decoration:underline}#qmx-modal-backdrop,#qmx-notice-backdrop{position:fixed;top:0;left:0;width:100vw;height:100vh;background-color:var(--md-sys-color-scrim);z-index:9998;opacity:0;visibility:hidden;transition:opacity .3s ease}#qmx-modal-backdrop.visible,#qmx-notice-backdrop.visible{opacity:.5;visibility:visible}#qmx-settings-modal,#qmx-notice-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.95);z-index:10001;background-color:var(--md-sys-color-surface-bright);color:var(--md-sys-color-on-surface);border-radius:28px;box-shadow:0 12px 32px #00000080;display:flex;flex-direction:column;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s,transform .3s}#qmx-settings-modal.visible,#qmx-notice-modal.visible{opacity:1;visibility:visible;transform:translate(-50%,-50%) scale(1)}.qmx-modal-btn{flex-grow:1;padding:10px 16px;border:1px solid var(--md-sys-color-outline);background-color:transparent;color:var(--md-sys-color-primary);border-radius:20px;font-size:14px;font-weight:500;cursor:pointer;transition:background-color .2s,transform .2s,box-shadow .2s;-webkit-user-select:none;user-select:none}.qmx-modal-btn:hover{background-color:#d0bcff1a;transform:translateY(-2px);box-shadow:0 2px 4px #0000001a}.qmx-modal-btn:active{transform:translateY(0) scale(.98);box-shadow:none}.qmx-modal-btn:disabled{opacity:.5;cursor:not-allowed}.qmx-modal-btn.primary{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary);border:none}.qmx-modal-btn.primary:hover{background-color:#c2b3ff;box-shadow:0 4px 8px #0003}.qmx-modal-btn.danger{border-color:#f44336;color:#f44336}.qmx-modal-btn.danger:hover{background-color:#f443361a}.qmx-modal-content::-webkit-scrollbar,.qmx-settings-content::-webkit-scrollbar{width:10px}.qmx-modal-content::-webkit-scrollbar-track,.qmx-settings-content::-webkit-scrollbar-track{background:var(--md-sys-color-surface-bright);border-radius:10px}.qmx-modal-content::-webkit-scrollbar-thumb,.qmx-settings-content::-webkit-scrollbar-thumb{background-color:var(--md-sys-color-primary);border-radius:10px;border:2px solid var(--md-sys-color-surface-bright)}.qmx-modal-content::-webkit-scrollbar-thumb:hover,.qmx-settings-content::-webkit-scrollbar-thumb:hover{background-color:#e0d1ff}';
   importCSS(ControlPanelRefactoredCss);
   const statsPanelTemplate = `
     <div class="qmx-stats-container">
@@ -480,7 +486,12 @@ getElementWithRetry: async function(selector, parentNode = document, retries = 5
             <button id="qmx-stats-left" class="qmx-stats-switcher"><</button>
             <span class="qmx-stats-indicator">▼</span>
             <span class="qmx-stats-label">今日统计</span>
-            <button class="qmx-stats-refresh">⟳</button>
+            <button class="qmx-stats-refresh">
+                <svg xmlns="http://www.w3.org/2000/svg" height="18px" viewBox="0 0 24 24" width="18px" fill="currentColor">
+                    <path d="M0 0h24v24H0V0z" fill="none"/>
+                    <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                </svg>
+            </button>
             <button id="qmx-stats-right" class="qmx-stats-switcher">></button>
         </div>
         <div class="qmx-stats-content" id="qmx-stats-content">
@@ -540,7 +551,7 @@ getElementWithRetry: async function(selector, parentNode = document, retries = 5
                 <button class="tab-link active" data-tab="basic">基本设置</button>
                 <button class="tab-link" data-tab="perf">性能与延迟</button>
                 <button class="tab-link" data-tab="advanced">高级设置</button>
-                <button class="tab-link" data-tab="danmupro">弹幕助手</button>
+                ${'<button class="tab-link" data-tab="danmupro">弹幕助手</button>'}
                 <button class="tab-link" data-tab="about">关于</button>
                 <!-- 主题模式切换开关 -->
                 <div class="qmx-settings-item">
@@ -609,13 +620,14 @@ getElementWithRetry: async function(selector, parentNode = document, retries = 5
                             <span class="slider"></span>
                         </label>
                     </div>
+                    ${`
                     <div class="qmx-settings-item">
                         <label>启用弹幕助手😋<span class="qmx-tooltip-icon" data-tooltip-key="danmupro-mode">?</span></label>
                         <label class="qmx-toggle">
                             <input type="checkbox" id="setting-danmupro-mode" ${SETTINGS2.ENABLE_DANMU_PRO ? "checked" : ""}>
                             <span class="slider"></span>
                         </label>
-                    </div>
+                    </div>`}
                     <div class="qmx-settings-item">
                         <label>达到上限后的行为</label>
                         <div class="qmx-select" data-target-id="setting-daily-limit-action">
@@ -697,6 +709,7 @@ getElementWithRetry: async function(selector, parentNode = document, retries = 5
             </div>
 
             <!-- ==================== Tab 4: 弹幕助手 ==================== -->
+            ${`
             <div id="tab-danmupro" class="tab-content">
                 <h4>关于斗鱼弹幕助手功能</h4>
                 <ul class="qmx-styled-list">
@@ -715,7 +728,7 @@ getElementWithRetry: async function(selector, parentNode = document, retries = 5
                     </li>
                     <li>长文本预览：当鼠标悬停或键盘选择到内容过长的候选项时，会显示一个悬浮框来展示完整内容。</li>
                 </ul>
-            </div>      
+            </div>`}
             <!-- ==================== Tab 5: 关于 ==================== -->
             <div id="tab-about" class="tab-content">
                 <!-- 调试工具 - 仅在开发时启用
@@ -742,26 +755,29 @@ getElementWithRetry: async function(selector, parentNode = document, retries = 5
                 </div>
                 -->
                 
-                <h4>关于脚本 <span class="version-tag">v2.0.8</span></h4>
+                <h4>关于脚本 <span class="version-tag">v2.0.9</span></h4>
                 <h4>致谢</h4>
                 <ul class="qmx-styled-list">
                     <li>本脚本基于<a href="https://greasyfork.org/zh-CN/users/1453821-ysl-ovo" target="_blank" rel="noopener noreferrer">ysl-ovo</a>的插件<a href="https://greasyfork.org/zh-CN/scripts/532514-%E6%96%97%E9%B1%BC%E5%85%A8%E6%B0%91%E6%98%9F%E6%8E%A8%E8%8D%90%E8%87%AA%E5%8A%A8%E9%A2%86%E5%8F%96" target="_blank" rel="noopener noreferrer">《斗鱼全民星推荐自动领取》</a>
                         进行一些功能改进(也许)与界面美化，同样遵循MIT许可证开源。感谢原作者的分享</li>
                     <li>兼容斗鱼新版UI的相关功能与项目重构主要由<a href="https://github.com/Truthss" target="_blank" rel="noopener noreferrer">@Truthss</a> 贡献，非常感谢！</li>
                 </ul>
-                <h4>一些tips</h4>
+                <h4>⚠️ 重要提示</h4>
                 <ul class="qmx-styled-list">
-                    <li>每天大概1000左右金币到上限</li>
-                    <li>注意这个活动到晚上的时候，100/50/20星光棒的选项可能空了(奖池对应项会变灰)这时候攒金币过了12点再抽，比较有性价比</li>
-                    <li>后台标签页有时会在还剩几秒时卡死在红包弹窗界面(标签页倒计时不动了)，然后就死循环了。目前已部分修复此问题</li>
-                    <li>脚本还是bug不少，随缘修了＞︿＜</li>
-                    <li>DouyuEx 的“阻止P2P上传”功能位置：点击精灵球->从左往右第四个🛠️样貌的选项->右侧菜单顶部 </li>
-                    <li>启用统计功能需要把"油猴管理面板->设置->安全->允许脚本访问 Cookie"改为ALL！！',
+                    <li><strong>斗鱼Ex插件冲突</strong>：如需使用本脚本抢红包，请暂时关闭斗鱼Ex插件，否则红包会消失。</li>
+                    <li><strong>浏览器DNS设置</strong>：请在浏览器设置中搜索"DNS"，将"使用安全的DNS"选项关闭，否则红包也会消失。</li>
+                    <li><strong>新版UI适配</strong>：控制面板"替换排行榜"模式暂不可用，请使用"浮动窗口"或"屏幕居中"模式。</li>
+                    <li>启用统计功能需要把"油猴管理面板->设置->安全->允许脚本访问 Cookie"改为ALL！！</li>
+                    <li>每天大概1000左右金币到上限。</li>
                 </ul>
-                <h4>脚本更新日志 (v2.0.8)</h4>
+                <h4>脚本更新日志 (v2.0.9)</h4>
                 <ul class="qmx-styled-list">
-                    <li>【修复】适配斗鱼星推荐API变动</li>
-                    <li>【新增】在控制面板中显示统计信息，记录每日领取的红包数量和金币总额。</li>
+                    <li>【新增】全新统计面板：支持查看今日及最近7天的红包数量与金币总数。</li>
+                    <li>【新增】奖励显示：控制面板现在可以直接显示每个红包的具体奖励信息（金币/荧光棒）。</li>
+                    <li>【优化】设置体验升级：修改设置选项后不再需要刷新页面即可生效。</li>
+                    <li>【优化】界面与布局：调整了控制面板样式，位置随窗口大小自动调整。</li>
+                    <li>【修复】适配斗鱼新版直播间界面（部分功能受限）。</li>
+                    <li>【修复】修复了重新打开控制页面时会残留已关闭的直播间信息的问题。</li>
                 </ul>
                 <h4>源码与社区</h4>
                 <ul class="qmx-styled-list">
@@ -1085,12 +1101,12 @@ show() {
       const allTooltips = {
         "control-room": "只有在此房间号的直播间中才能看到插件面板，看准了再改！(修改后不会立即刷新，下次进入该房间生效)",
         "temp-control-room": "备用的控制室房间号（真实RID），用于兼容特殊活动页或Topic页面。",
-"auto-pause": "自动暂停非控制直播间的视频播放，大幅降低资源占用。",
+        "auto-pause": "自动暂停非控制直播间的视频播放，大幅降低资源占用。",
         "initial-script-delay": "页面加载后等待多久再运行脚本，可适当增加以确保页面完全加载。",
         "auto-pause-delay": "领取红包后等待多久再次尝试暂停视频。",
-        "unresponsive-timeout": "工作页多久未汇报任何状态后，在面板上标记为“无响应”。",
-        "red-envelope-timeout": "进入直播间后，最长等待多久来寻找红包活动，超时后将切换房间。",
-        "popup-wait-timeout": "点击红包后，等待领取弹窗出现的最长时间。",
+        "unresponsive-timeout": '工作页多久未汇报任何状态后，在面板上标记为"无响应"。',
+        "red-envelope-timeout": "进入直播间后，最长等待多久来寻找红包活动，超时后将切换房间。（默认15秒）",
+        "popup-wait-timeout": "点击红包后，等待领取弹窗出现的最长时间。注意：系统会在发现新红包时提前提取奖励信息。",
         "worker-loading-timeout": "新开的直播间卡在加载状态多久还没显示播放组件，被判定为加载失败或缓慢。",
         "range-delay": "脚本在每次点击等操作前后随机等待的时间范围，模拟真人行为。",
         "close-tab-delay": "旧页面在打开新页面后，等待多久再关闭自己，确保新页面已接管。",
@@ -1129,7 +1145,7 @@ getSettingsFromUI() {
 CONTROL_ROOM_ID: document.getElementById("setting-control-room-id").value,
         TEMP_CONTROL_ROOM_RID: document.getElementById("setting-temp-control-room-id").value,
         AUTO_PAUSE_ENABLED: document.getElementById("setting-auto-pause").checked,
-        ENABLE_DANMU_PRO: document.getElementById("setting-danmupro-mode").checked,
+...{ ENABLE_DANMU_PRO: document.getElementById("setting-danmupro-mode").checked },
         DAILY_LIMIT_ACTION: document.getElementById("setting-daily-limit-action").value,
         MODAL_DISPLAY_MODE: document.getElementById("setting-modal-mode").value,
         SHOW_STATS_IN_PANEL: document.getElementById("setting-stats-info").checked,
@@ -1250,13 +1266,30 @@ showCalibrationNotice() {
       if (!hasShownNotice) {
         const noticeHTML = `
                 <div class="qmx-modal-header">
-                    <h3>星推荐助手提示</h3>
+                    <h3>⚠️ 重要更新提示</h3>
                     <button id="qmx-notice-close-btn" class="qmx-modal-close-icon" title="关闭"></button>
                 </div>
                 <div class="qmx-modal-content">
-                    <p>新增弹幕助手功能😋，助力畅快发弹幕，使用方法详见设置->弹幕助手</p>
-                    <p>如需关闭此功能，关闭‘设置->基本设置->启用弹幕助手😋’即可</p>
-                    <h4> 项目地址<a href="https://github.com/ienone/douyu-qmx-pro" target="_blank" rel="noopener noreferrer">douyu-qmx-pro</a>，求个star🌟~~</h4>
+                    <h4 style="color: var(--accent-color, #ff6b6b); margin-top: 0;">斗鱼网页UI更新说明</h4>
+                    <p>斗鱼已更新直播间界面，脚本正在适配中。目前基本功能可用，但请注意：</p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>控制面板"替换排行榜"模式暂不可用</strong>，请使用"浮动窗口"或"屏幕居中"模式</li>
+                        <li><strong>刚开始打开的几个工作标签页</strong>可能需要手动切换激活一下才能正常加载</li>
+                        <li><strong>弹幕助手功能</strong>正在适配中，暂时可能无法使用</li>
+                    </ul>
+                    
+                    <h4 style="color: var(--accent-color, #ff6b6b);">⚠️使用前必读</h4>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>斗鱼Ex插件冲突</strong>：如需使用本脚本抢红包，请暂时关闭斗鱼Ex插件，否则红包会消失。后续会尝试沟通解决此问题</li>
+                        <li><strong>浏览器DNS设置</strong>：请在浏览器设置中搜索"DNS"，将"使用安全的DNS"选项关闭，否则红包也会消失</li>
+                    </ul>
+                    
+                    <h4 style="color: var(--status-color-success, #4CAF50);">✨ 新增功能</h4>
+                    <p>控制面板现在会显示每个红包的具体奖励信息🎁</p>
+                    <p>启用统计功能需要把"油猴管理面板->设置->安全->允许脚本访问 Cookie"改为ALL！！</p>
+                    
+                    <h4 style="margin-bottom: 5px;">⭐️点点star吧~</h4>
+                    <p style="margin-top: 5px;">项目地址：<a href="https://github.com/ienone/douyu-qmx-pro" target="_blank" rel="noopener noreferrer" style="color: var(--accent-color, #ff6b6b);">douyu-qmx-pro</a>，觉得好用请给个star🌟~~</p>
                 </div>
                 <div class="qmx-modal-footer">
                     <button id="qmx-notice-settings-btn" class="qmx-modal-btn">前往设置</button>
@@ -6387,9 +6420,9 @@ disable() {
       this.enabled = false;
     }
   };
-  const _danmukuPopupCss = ".dda-popup{position:fixed;z-index:9999;background:var(--md-sys-color-surface-container);border:1px solid var(--md-sys-color-outline);transition:all .3s var(--motion-easing),box-shadow .3s var(--motion-easing);border-radius:12px;box-shadow:0 4px 8px 3px #00000026,0 1px 3px #0000004d;max-width:400px;max-height:300px;overflow:hidden;opacity:0;transform:translateY(-10px)}.dda-popup.show{opacity:1;transform:translateY(0)}.dda-popup.selection-mode-active{border-color:var(--md-sys-color-primary);box-shadow:0 6px 16px 4px #0003,0 2px 6px #0006,0 0 0 1px var(--md-sys-color-primary);background:var(--md-sys-color-surface-bright)}.dda-popup-content{max-height:300px;overflow-y:auto;padding:4px 0}.dda-popup-item{padding:8px 16px;cursor:pointer;border-bottom:1px solid var(--md-sys-color-outline);transition:all .25s cubic-bezier(.4,0,.2,1);min-height:40px;display:flex;flex-direction:column;justify-content:center;position:relative;border-left:6px solid transparent;will-change:transform}.dda-popup-item-active{background-color:var(--md-sys-color-tertiary-container);border-left-color:var(--md-sys-color-tertiary);transform:translate(2px);box-shadow:0 4px 12px #0003,inset 0 0 0 2px rgba(var(--md-sys-color-tertiary-rgb),.3);z-index:10}.dda-popup-item:last-child{border-bottom:none}.dda-popup-item:hover{background-color:var(--md-sys-color-surface-bright);transform:translate(4px)}.dda-preview-tooltip{position:fixed;z-index:10000;background:var(--md-sys-color-surface-bright);border:1px solid var(--md-sys-color-outline);border-radius:8px;padding:12px 16px;box-shadow:0 8px 24px #0000004d;max-width:400px;word-wrap:break-word;font-size:14px;color:var(--md-sys-color-on-surface);opacity:0;transform:translateY(-10px);transition:opacity .2s cubic-bezier(.4,0,.2,1),transform .2s cubic-bezier(.4,0,.2,1);pointer-events:none}.dda-preview-tooltip.show{opacity:1;transform:translateY(0)}.dda-popup-item-text{font-size:14px;color:var(--md-sys-color-on-surface);line-height:1.4;margin-bottom:4px}.dda-popup-item-active .dda-popup-item-text{color:var(--md-sys-color-on-tertiary-container);font-weight:600}.dda-popup-item-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.dda-popup-tag{display:inline-block;padding:2px 6px;background-color:var(--md-sys-color-tertiary);color:var(--md-sys-color-on-primary);font-size:11px;border-radius:12px;line-height:1.2}.dda-popup-item-active .dda-popup-tag{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary)}.dda-popup-empty{max-height:60px}.dda-empty-message{padding:16px;text-align:center;color:var(--md-sys-color-on-surface-variant);font-size:13px}@media (max-width: 480px){.dda-popup{max-width:90vw;left:5vw!important;right:5vw!important}}@keyframes fadeInUp{0%{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.dda-popup.animate-in{animation:fadeInUp .2s var(--motion-easing)}.send-button:hover{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)}.send-button:active{transform:scale(.98)}";
+  const _danmukuPopupCss = ".dda-popup{position:fixed;z-index:9999;background:var(--md-sys-color-surface-container);border:1.5px solid var(--capsule-border-color, rgba(103, 80, 164, .3));transition:all .3s var(--motion-easing),box-shadow .3s var(--motion-easing);border-radius:12px;box-shadow:0 4px 8px 3px #00000026,0 1px 3px #0000004d;max-width:400px;max-height:300px;overflow:hidden;opacity:0;transform:translateY(-10px)}.dda-popup.show{opacity:1;transform:translateY(0)}.dda-popup.selection-mode-active{border-color:var(--md-sys-color-primary);box-shadow:0 6px 16px 4px #0003,0 2px 6px #0006,0 0 0 1px var(--md-sys-color-primary);background:var(--md-sys-color-surface-bright)}.dda-popup-content{max-height:300px;overflow-y:auto;padding:4px 0}.dda-popup-item{padding:8px 16px;cursor:pointer;border-bottom:1px solid var(--capsule-border-color, rgba(103, 80, 164, .2));transition:all .25s cubic-bezier(.4,0,.2,1);min-height:40px;display:flex;flex-direction:column;justify-content:center;position:relative;border-left:6px solid transparent;will-change:transform}.dda-popup-item-active{background-color:var(--md-sys-color-tertiary-container);border-left-color:var(--md-sys-color-tertiary);transform:translate(2px);box-shadow:0 4px 12px #0003,inset 0 0 0 2px rgba(var(--md-sys-color-tertiary-rgb),.3);z-index:10}.dda-popup-item:last-child{border-bottom:none}.dda-popup-item:hover{background-color:var(--md-sys-color-surface-bright);transform:translate(4px)}.dda-preview-tooltip{position:fixed;z-index:10000;background:var(--md-sys-color-surface-bright);border:1px solid var(--md-sys-color-outline);border-radius:8px;padding:12px 16px;box-shadow:0 8px 24px #0000004d;max-width:400px;word-wrap:break-word;font-size:14px;color:var(--md-sys-color-on-surface);opacity:0;transform:translateY(-10px);transition:opacity .2s cubic-bezier(.4,0,.2,1),transform .2s cubic-bezier(.4,0,.2,1);pointer-events:none}.dda-preview-tooltip.show{opacity:1;transform:translateY(0)}.dda-popup-item-text{font-size:14px;color:var(--md-sys-color-on-surface);line-height:1.4;margin-bottom:4px}.dda-popup-item-active .dda-popup-item-text{color:var(--md-sys-color-on-tertiary-container);font-weight:600}.dda-popup-item-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.dda-popup-tag{display:inline-block;padding:2px 6px;background-color:var(--md-sys-color-tertiary);color:var(--md-sys-color-on-primary);font-size:11px;border-radius:12px;line-height:1.2}.dda-popup-item-active .dda-popup-tag{background-color:var(--md-sys-color-primary);color:var(--md-sys-color-on-primary)}.dda-popup-empty{max-height:60px}.dda-empty-message{padding:16px;text-align:center;color:var(--md-sys-color-on-surface-variant);font-size:13px}@media (max-width: 480px){.dda-popup{max-width:90vw;left:5vw!important;right:5vw!important}}@keyframes fadeInUp{0%{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.dda-popup.animate-in{animation:fadeInUp .2s var(--motion-easing)}.send-button:hover{background:var(--md-sys-color-primary-container);color:var(--md-sys-color-on-primary-container)}.send-button:active{transform:scale(.98)}";
   importCSS(_danmukuPopupCss);
-  const _candidateCapsulesCss = '.ddp-candidate-capsules{display:flex;flex-wrap:nowrap;gap:6px;padding:var(--ddp-capsule-padding, 8px) 12px;background:var(--md-sys-color-surface-container);border-radius:8px;margin:var(--ddp-capsule-margin, 8px) 12px;max-width:calc(100% - 24px);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;position:relative;z-index:1000}.ddp-candidate-capsules::-webkit-scrollbar{display:none}.ddp-candidate-capsules.multi-row{flex-wrap:wrap;max-height:120px;overflow-y:auto;mask:none;-webkit-mask:none}.ddp-candidate-capsule{flex-shrink:0;padding:var(--ddp-capsule-item-padding, 3px) 8px;background:var(--md-sys-color-surface-container);border:1px solid var(--md-sys-color-outline);border-radius:12px;color:var(--md-sys-color-on-surface);font-size:12px;line-height:1.3;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:ltr;text-align:left;max-width:150px;min-width:30px;height:var(--ddp-capsule-item-height, 24px);display:flex;align-items:center;justify-content:flex-start;box-sizing:border-box;-webkit-user-select:none;user-select:none;position:relative}.ddp-candidate-capsules.multi-row .ddp-candidate-capsule{flex:0 0 calc(25% - 5px);max-width:calc(25% - 5px);min-width:60px}.ddp-candidate-capsule:hover{background:#fff3;border-color:#fff6;transform:translateY(-1px);box-shadow:0 2px 4px #0003}.ddp-candidate-capsule.active{background:#f60;border-color:#f83;color:#fff;font-weight:500;box-shadow:0 2px 6px #ff66004d}.ddp-candidate-capsules.selection-mode-active{box-shadow:0 0 0 2px #f60;background:var(--md-sys-color-surface-container)}.ddp-candidate-capsule[title]{position:relative}.ddp-capsule-preview{position:fixed;z-index:10000;background:var(--md-sys-color-surface-container);border:1px solid var(--md-sys-color-outline);border-radius:8px;padding:8px 12px;box-shadow:0 4px 8px 3px #0000004d,0 1px 3px #0006;max-width:300px;min-width:100px;word-wrap:break-word;white-space:normal;opacity:0;transform:translateY(-5px);transition:opacity .2s cubic-bezier(.4,0,.2,1),transform .2s cubic-bezier(.4,0,.2,1);pointer-events:none;font-size:13px;line-height:1.4;color:var(--md-sys-color-on-surface)}.ddp-capsule-preview.show{opacity:1;transform:translateY(0)}.ddp-capsule-preview:before{content:"";position:absolute;bottom:-5px;left:50%;transform:translate(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--md-sys-color-surface-container)}.ddp-capsule-preview.show-below:before{bottom:auto;top:-5px;border-top:none;border-bottom:5px solid var(--md-sys-color-surface-container)}.ddp-capsule-preview.active{border-color:#f60;background:var(--surface-container-highest);box-shadow:0 4px 8px 3px #0000004d,0 1px 3px #0006,0 0 0 1px #f60}.ddp-capsule-preview.active:before{border-top-color:var(--surface-container-highest)}.ddp-capsule-preview.active.show-below:before{border-bottom-color:var(--surface-container-highest)}.layout-Player-chat .Chat .ddp-candidate-capsules{z-index:1000;position:relative}.Chat{background-color:var(--md-sys-color-surface-container)}@media (max-width: 768px){.ddp-candidate-capsules{gap:6px;padding:6px 8px}.ddp-candidate-capsule{padding:4px 8px;font-size:12px;max-width:150px}}@media (prefers-color-scheme: dark){.ddp-candidate-capsules{box-shadow:0 2px 8px #00000040}.ddp-candidate-capsule:hover{box-shadow:0 2px 8px #0000004d}}@keyframes ddp-capsule-appear{0%{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.ddp-candidate-capsules{animation:ddp-capsule-appear .2s var(--motion-easing)}.ddp-candidate-capsule{animation:ddp-capsule-appear .3s var(--motion-easing) backwards}.ddp-candidate-capsule:nth-child(1){animation-delay:.05s}.ddp-candidate-capsule:nth-child(2){animation-delay:.1s}.ddp-candidate-capsule:nth-child(3){animation-delay:.15s}.ddp-candidate-capsule:nth-child(4){animation-delay:.2s}.ddp-candidate-capsule:nth-child(5){animation-delay:.25s}';
+  const _candidateCapsulesCss = '.ddp-candidate-capsules{display:flex;flex-wrap:nowrap;gap:6px;padding:var(--ddp-capsule-padding, 8px) 12px;background:var(--md-sys-color-surface-container);border-radius:8px;margin:var(--ddp-capsule-margin, 8px) 12px;max-width:calc(100% - 24px);overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none;position:relative;z-index:1000}.ddp-candidate-capsules::-webkit-scrollbar{display:none}.ddp-candidate-capsules.multi-row{flex-wrap:wrap;max-height:120px;overflow-y:auto;mask:none;-webkit-mask:none}.ddp-candidate-capsule{flex-shrink:0;padding:var(--ddp-capsule-item-padding, 3px) 8px;background:var(--md-sys-color-surface-container);border:1.5px solid var(--capsule-border-color, rgba(103, 80, 164, .3));border-radius:12px;color:var(--md-sys-color-on-surface);font-size:12px;line-height:1.3;cursor:pointer;transition:all .25s cubic-bezier(.4,0,.2,1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;direction:ltr;text-align:left;max-width:150px;min-width:30px;height:var(--ddp-capsule-item-height, 24px);display:flex;align-items:center;justify-content:flex-start;box-sizing:border-box;-webkit-user-select:none;user-select:none;position:relative}.ddp-candidate-capsules.multi-row .ddp-candidate-capsule{flex:0 0 calc(25% - 5px);max-width:calc(25% - 5px);min-width:60px}.ddp-candidate-capsule:hover{background:var(--md-sys-color-surface-bright);border-color:var(--capsule-border-hover, rgba(103, 80, 164, .6));transform:translateY(-1px);box-shadow:0 2px 6px #00000026}.ddp-candidate-capsule.active{background:#f60;border-color:#f83;color:#fff;font-weight:500;box-shadow:0 2px 8px #f606}.ddp-candidate-capsules.selection-mode-active{box-shadow:0 0 0 2px #f60;background:var(--md-sys-color-surface-container)}.ddp-candidate-capsule[title]{position:relative}.ddp-capsule-preview{position:fixed;z-index:10000;background:var(--md-sys-color-surface-container);border:1px solid var(--md-sys-color-outline);border-radius:8px;padding:8px 12px;box-shadow:0 4px 8px 3px #0000004d,0 1px 3px #0006;max-width:300px;min-width:100px;word-wrap:break-word;white-space:normal;opacity:0;transform:translateY(-5px);transition:opacity .2s cubic-bezier(.4,0,.2,1),transform .2s cubic-bezier(.4,0,.2,1);pointer-events:none;font-size:13px;line-height:1.4;color:var(--md-sys-color-on-surface)}.ddp-capsule-preview.show{opacity:1;transform:translateY(0)}.ddp-capsule-preview:before{content:"";position:absolute;bottom:-5px;left:50%;transform:translate(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid var(--md-sys-color-surface-container)}.ddp-capsule-preview.show-below:before{bottom:auto;top:-5px;border-top:none;border-bottom:5px solid var(--md-sys-color-surface-container)}.ddp-capsule-preview.active{border-color:#f60;background:var(--surface-container-highest);box-shadow:0 4px 8px 3px #0000004d,0 1px 3px #0006,0 0 0 1px #f60}.ddp-capsule-preview.active:before{border-top-color:var(--surface-container-highest)}.ddp-capsule-preview.active.show-below:before{border-bottom-color:var(--surface-container-highest)}.layout-Player-chat .Chat .ddp-candidate-capsules{z-index:1000;position:relative}.Chat{background-color:var(--md-sys-color-surface-container)}@media (max-width: 768px){.ddp-candidate-capsules{gap:6px;padding:6px 8px}.ddp-candidate-capsule{padding:4px 8px;font-size:12px;max-width:150px}}@media (prefers-color-scheme: dark){.ddp-candidate-capsules{box-shadow:0 2px 8px #00000040}.ddp-candidate-capsule:hover{box-shadow:0 2px 8px #0000004d}}@keyframes ddp-capsule-appear{0%{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.ddp-candidate-capsules{animation:ddp-capsule-appear .2s var(--motion-easing)}.ddp-candidate-capsule{animation:ddp-capsule-appear .3s var(--motion-easing) backwards}.ddp-candidate-capsule:nth-child(1){animation-delay:.05s}.ddp-candidate-capsule:nth-child(2){animation-delay:.1s}.ddp-candidate-capsule:nth-child(3){animation-delay:.15s}.ddp-candidate-capsule:nth-child(4){animation-delay:.2s}.ddp-candidate-capsule:nth-child(5){animation-delay:.25s}';
   importCSS(_candidateCapsulesCss);
   const DanmuPro = {
     initialized: false,
@@ -6440,6 +6473,10 @@ async firstTimeImport() {
       }
     }
   };
+  const ICONS = {
+    GOLD: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#FFD700" stroke="#FFA000" stroke-width="2"/><text x="50%" y="50%" text-anchor="middle" dy=".35em" font-size="14" fill="#B8860B" font-weight="bold" font-family="Arial">¥</text></svg>`,
+    STARLIGHT: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#FF69B4" stroke="#FF1493" stroke-width="2"/></svg>`
+  };
   const ControlPage = {
 injectionTarget: null,
 isPanelInjected: false,
@@ -6455,14 +6492,14 @@ init() {
       const qmxModalHeader = document.querySelector(".qmx-modal-header");
       if (SETTINGS.SHOW_STATS_IN_PANEL) {
         if (qmxModalHeader) {
-          qmxModalHeader.style.padding = "12px 20px 0px 20px;";
+          qmxModalHeader.style.padding = "10px 20px 0px 20px";
         }
         StatsInfo.init();
       } else {
         const statsContent = document.querySelector(".qmx-stats-container");
         if (statsContent && qmxModalHeader) {
           statsContent.remove();
-          qmxModalHeader.style.padding = "16px 24px";
+          qmxModalHeader.style.padding = "10px 20px 4px 20px";
         }
       }
       this.applyModalMode();
@@ -6495,7 +6532,7 @@ checkInjectionState() {
         }
       }
     },
-handleSettingsUpdate(newSettings) {
+async handleSettingsUpdate(newSettings) {
       Utils.log("[ControlPage] 检测到设置更新，正在应用...");
       if (newSettings.MODAL_DISPLAY_MODE) {
         this.applyModalMode();
@@ -6540,7 +6577,7 @@ toggleStatsPanel(show) {
           }
         }
         if (qmxModalHeader) {
-          qmxModalHeader.style.padding = "12px 20px 0px 20px;";
+          qmxModalHeader.style.padding = "10px 20px 0px 20px";
         }
         StatsInfo.init();
       } else {
@@ -6548,7 +6585,7 @@ toggleStatsPanel(show) {
           statsContent.remove();
         }
         if (qmxModalHeader) {
-          qmxModalHeader.style.padding = "16px 24px";
+          qmxModalHeader.style.padding = "10px 20px 4px 20px";
         }
         StatsInfo.destroy();
       }
@@ -6714,11 +6751,11 @@ renderDashboard() {
           }
         }
         if (existingItem) {
-          const nicknameEl = existingItem.querySelector(".qmx-tab-nickname");
+          const nicknameEl = existingItem.querySelector(".identity-nickname") || existingItem.querySelector(".qmx-tab-nickname");
           const statusNameEl = existingItem.querySelector(".qmx-tab-status-name");
           const statusTextEl = existingItem.querySelector(".qmx-tab-status-text");
           const dotEl = existingItem.querySelector(".qmx-tab-status-dot");
-          if (tabData.nickname && nicknameEl.textContent !== tabData.nickname) {
+          if (tabData.nickname && nicknameEl && nicknameEl.textContent !== tabData.nickname) {
             nicknameEl.textContent = tabData.nickname;
           }
           const newStatusName = `[${statusDisplayMap[tabData.status] || tabData.status}]`;
@@ -6728,6 +6765,31 @@ renderDashboard() {
           }
           if (statusTextEl.textContent !== currentStatusText) {
             statusTextEl.textContent = currentStatusText;
+          }
+          let prizesContainer = existingItem.querySelector(".qmx-tab-prizes");
+          const newPrizesHtml = this.generatePrizesHTML(tabData.prizes);
+          if (newPrizesHtml) {
+            if (!prizesContainer) {
+              const closeBtn = existingItem.querySelector(".qmx-tab-close-btn");
+              if (closeBtn) {
+                closeBtn.insertAdjacentHTML("beforebegin", newPrizesHtml);
+              } else {
+                existingItem.insertAdjacentHTML("beforeend", newPrizesHtml);
+              }
+            } else {
+              const tempDiv = document.createElement("div");
+              tempDiv.innerHTML = newPrizesHtml;
+              const newContainer = tempDiv.firstElementChild;
+              const oldLayoutClass = prizesContainer.classList.contains("multi-prizes") ? "multi-prizes" : "single-prize";
+              const newLayoutClass = newContainer.classList.contains("multi-prizes") ? "multi-prizes" : "single-prize";
+              const oldText = prizesContainer.textContent.trim();
+              const newText = newContainer.textContent.trim();
+              if (oldLayoutClass !== newLayoutClass || oldText !== newText) {
+                prizesContainer.outerHTML = newPrizesHtml;
+              }
+            }
+          } else if (prizesContainer) {
+            prizesContainer.remove();
           }
         } else {
           const newItem = this.createTaskItem(roomId, tabData, statusDisplayMap, currentStatusText);
@@ -6962,21 +7024,89 @@ createTaskItem(roomId, tabData, statusMap, statusText) {
       const statusColor = `var(--status-color-${tabData.status.toLowerCase()}, #9E9E9E)`;
       const nickname = tabData.nickname || "加载中...";
       const statusName = statusMap[tabData.status] || tabData.status;
+      const prizesHtml = this.generatePrizesHTML(tabData.prizes);
       newItem.innerHTML = `
                 <div class="qmx-tab-status-dot" style="background-color: ${statusColor};"></div>
                 <div class="qmx-tab-info">
                     <div class="qmx-tab-header">
-                        <span class="qmx-tab-nickname">${nickname}</span>
-                        <span class="qmx-tab-room-id">${roomId}</span>
+                        <button class="qmx-tab-identity" type="button" data-state="nickname" title="点击切换或复制">
+                            <span class="qmx-tab-identity-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" role="img" focusable="false">
+                                    <path d="M8 7h3v2H8v9H6V9H3V7h3V4h2v3zm7 0h6v2h-6v9h-2V7h2z" fill="currentColor"></path>
+                                </svg>
+                            </span>
+                            <span class="qmx-tab-identity-text">
+                                <span class="identity-nickname">${nickname}</span>
+                                <span class="identity-roomid">${roomId}</span>
+                            </span>
+                        </button>
                     </div>
                     <div class="qmx-tab-details">
                         <span class="qmx-tab-status-name">[${statusName}]</span>
                         <span class="qmx-tab-status-text">${statusText}</span>
                     </div>
                 </div>
-                <button class="qmx-tab-close-btn" title="关闭该标签页">×</button>
+                ${prizesHtml}
+                <button class="qmx-tab-close-btn" title="关闭该标签页">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
             `;
+      const identityBtn = newItem.querySelector(".qmx-tab-identity");
+      const nicknameSpan = identityBtn.querySelector(".identity-nickname");
+      const roomIdSpan = identityBtn.querySelector(".identity-roomid");
+      const iconSpan = identityBtn.querySelector(".qmx-tab-identity-icon");
+      const setIdentityState = (state) => {
+        identityBtn.dataset.state = state;
+      };
+      const copyIdentityValue = async (state) => {
+        const value = state === "room" ? roomIdSpan.textContent.trim() : nicknameSpan.textContent.trim();
+        const label = state === "room" ? "房间号" : "房间名";
+        try {
+          await navigator.clipboard.writeText(value);
+          identityBtn.classList.add("copied");
+          setTimeout(() => identityBtn.classList.remove("copied"), 300);
+          Utils.log(`[房间号切换] 已复制${label}: ${value}`);
+        } catch (err) {
+          Utils.log(`[房间号切换] 复制失败: ${err.message}`);
+        }
+      };
+      iconSpan.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const currentState = identityBtn.dataset.state === "room" ? "room" : "nickname";
+        await copyIdentityValue(currentState);
+      });
+      identityBtn.addEventListener("click", (e) => {
+        if (e.target.closest(".qmx-tab-identity-icon")) {
+          return;
+        }
+        e.stopPropagation();
+        const currentState = identityBtn.dataset.state === "room" ? "room" : "nickname";
+        const nextState = currentState === "nickname" ? "room" : "nickname";
+        setIdentityState(nextState);
+      });
+      identityBtn.addEventListener(
+        "mouseenter",
+        () => Utils.log(`[房间号切换] 鼠标悬停在房间胶囊: ${roomId}`),
+        { once: true }
+      );
       return newItem;
+    },
+generatePrizesHTML(prizes) {
+      if (!prizes || !Array.isArray(prizes) || prizes.length === 0) return "";
+      const layoutClass = prizes.length > 1 ? "multi-prizes" : "single-prize";
+      return `<div class="qmx-tab-prizes ${layoutClass}">` + prizes.map((p, index) => {
+        let icon = ICONS.GOLD;
+        if (prizes.length === 2 && index === 1) {
+          icon = ICONS.STARLIGHT;
+        }
+        return `<div class="qmx-tab-prize-item" title="${p.name || p.text}">
+                    ${icon}
+                    <span class="qmx-tab-prize-text">${p.text}</span>
+                </div>`;
+      }).join("") + `</div>`;
     },
 applyModalMode() {
       const modalContainer = this.modalContainer || document.getElementById("qmx-modal-container");
@@ -7070,11 +7200,17 @@ clearClosedTabs() {
     }
   };
   const DOM = {
-async findElement(selector, timeout = SETTINGS.PANEL_WAIT_TIMEOUT, parent = document) {
+async findElement(selector, timeout = SETTINGS.PANEL_WAIT_TIMEOUT, parent = document, validator = null) {
       const startTime = Date.now();
       while (Date.now() - startTime < timeout) {
-        const element = parent.querySelector(selector);
-        if (element && window.getComputedStyle(element).display !== "none") {
+        const elements = parent.querySelectorAll(selector);
+        for (const element of elements) {
+          if (window.getComputedStyle(element).display === "none") {
+            continue;
+          }
+          if (validator && !validator(element)) {
+            continue;
+          }
           return element;
         }
         await Utils.sleep(300);
@@ -7191,53 +7327,180 @@ async init() {
         return;
       }
       if (SETTINGS.AUTO_PAUSE_ENABLED) this.autoPauseVideo();
-      const redEnvelopeDiv = await DOM.findElement(SETTINGS.SELECTORS.redEnvelopeContainer, SETTINGS.RED_ENVELOPE_LOAD_TIMEOUT);
-      if (!redEnvelopeDiv) {
-        GlobalState.updateWorker(roomId, "SWITCHING", "无活动, 切换中", { countdown: null });
-        await this.switchRoom();
-        return;
+      Utils.log(`[调试] 开始在房间 ${roomId} 寻找红包...`);
+      const outerContainers = document.querySelectorAll(SETTINGS.SELECTORS.redEnvelopeContainer);
+      let redEnvelopeDiv = null;
+      let statusText = "";
+      let countdownText = "";
+      let foundValidContainer = false;
+      for (let i = 0; i < outerContainers.length; i++) {
+        const outer = outerContainers[i];
+        const hasBoxIcon = outer.querySelector(SETTINGS.SELECTORS.boxIcon);
+        if (!hasBoxIcon) {
+          continue;
+        }
+        foundValidContainer = true;
+        const headlineElem = outer.querySelector(SETTINGS.SELECTORS.statusHeadline);
+        const headline = headlineElem ? headlineElem.textContent.trim() : "";
+        const contentElem = outer.querySelector(SETTINGS.SELECTORS.countdownTimer);
+        const content = contentElem ? contentElem.textContent.trim() : "";
+        Utils.log(`[调试] 容器 #${i} 标题: "${headline}" | 内容: "${content}"`);
+        if (headline.includes("倒计时") && content.includes(":")) {
+          redEnvelopeDiv = outer;
+          statusText = headline;
+          countdownText = content;
+          break;
+        } else if (headline.includes("可领取") || headline.includes("立即")) {
+          redEnvelopeDiv = outer;
+          statusText = headline;
+          countdownText = "";
+          break;
+        }
+        if (!redEnvelopeDiv) {
+          redEnvelopeDiv = outer;
+          statusText = headline;
+          countdownText = content;
+        }
       }
-      const statusSpan = redEnvelopeDiv.querySelector(SETTINGS.SELECTORS.countdownTimer);
-      const statusText = statusSpan ? statusSpan.textContent.trim() : "";
-      if (statusText.includes(":")) {
-        const [minutes, seconds] = statusText.split(":").map(Number);
-        const remainingSeconds = minutes * 60 + seconds;
-        const currentCount = this.remainingTimeMap.get(remainingSeconds) || 0;
-        this.remainingTimeMap.set(remainingSeconds, currentCount + 1);
-        if (Array.from(this.remainingTimeMap.values()).some((value) => value > 3)) {
-          GlobalState.updateWorker(roomId, "SWITCHING", "倒计时卡死, 切换中", { countdown: null });
+      if (!foundValidContainer) {
+        Utils.log(`[调试] 初次查找未发现红包容器，等待 ${SETTINGS.RED_ENVELOPE_LOAD_TIMEOUT / 1e3} 秒后重新检查...`);
+        const waitedDiv = await this.waitForRedEnvelopeContainer(SETTINGS.RED_ENVELOPE_LOAD_TIMEOUT);
+        if (!waitedDiv) {
+          Utils.log("[判断] 超时未找到红包容器，判定活动已结束。");
+          GlobalState.updateWorker(roomId, "SWITCHING", "活动已结束, 切换中", { countdown: null });
           await this.switchRoom();
           return;
         }
-        this.currentTaskEndTime = Date.now() + remainingSeconds * 1e3;
-        this.lastHealthCheckTime = Date.now();
-        this.lastPageCountdown = remainingSeconds;
-        Utils.log(`发现新任务：倒计时 ${statusText}。`);
-        GlobalState.updateWorker(roomId, "WAITING", `倒计时 ${statusText}`, {
-          countdown: { endTime: this.currentTaskEndTime }
-        });
-        const wakeUpDelay = Math.max(0, remainingSeconds * 1e3 - 1500);
-        Utils.log(`本单元将在约 ${Math.round(wakeUpDelay / 1e3)} 秒后唤醒执行任务。`);
-        setTimeout(() => this.claimAndRecheck(roomId), wakeUpDelay);
-        this.startHealthChecks(roomId, redEnvelopeDiv);
-      } else if (statusText.includes("抢") || statusText.includes("领")) {
+        foundValidContainer = true;
+        const headlineElem = waitedDiv.querySelector(SETTINGS.SELECTORS.statusHeadline);
+        const contentElem = waitedDiv.querySelector(SETTINGS.SELECTORS.countdownTimer);
+        statusText = headlineElem ? headlineElem.textContent.trim() : "";
+        countdownText = contentElem ? contentElem.textContent.trim() : "";
+        redEnvelopeDiv = waitedDiv;
+      }
+      if (countdownText.includes(":")) {
+        const timeMatch = countdownText.match(/(\d+):(\d+)/);
+        if (timeMatch) {
+          const minutes = parseInt(timeMatch[1]);
+          const seconds = parseInt(timeMatch[2]);
+          const remainingSeconds = minutes * 60 + seconds;
+          const currentCount = this.remainingTimeMap.get(remainingSeconds) || 0;
+          this.remainingTimeMap.set(remainingSeconds, currentCount + 1);
+          if (Array.from(this.remainingTimeMap.values()).some((value) => value > 3)) {
+            GlobalState.updateWorker(roomId, "SWITCHING", "倒计时卡死, 切换中", { countdown: null });
+            await this.switchRoom();
+            return;
+          }
+          this.currentTaskEndTime = Date.now() + remainingSeconds * 1e3;
+          Utils.log(`[任务] 识别到倒计时: ${timeMatch[0]}`);
+          const prizes = await this.extractPrizeInfo(redEnvelopeDiv);
+          GlobalState.updateWorker(roomId, "WAITING", `倒计时 ${timeMatch[0]}`, {
+            countdown: { endTime: this.currentTaskEndTime },
+            prizes
+          });
+          const wakeUpDelay = Math.max(0, remainingSeconds * 1e3 - 1500);
+          setTimeout(() => this.claimAndRecheck(roomId), wakeUpDelay);
+          this.startHealthChecks(roomId, redEnvelopeDiv);
+        } else {
+          Utils.log(`[错误] 无法解析时间: "${countdownText}"`);
+          setTimeout(() => this.findAndExecuteNextTask(roomId), 5e3);
+        }
+      } else if (/可领取|立即/.test(statusText)) {
+        Utils.log(`[任务] 检测到可领取状态: ${statusText}`);
         GlobalState.updateWorker(roomId, "CLAIMING", "立即领取中...");
         await this.claimAndRecheck(roomId);
       } else {
-        GlobalState.updateWorker(roomId, "WAITING", `状态未知, 稍后重试`, { countdown: null });
-        setTimeout(() => this.findAndExecuteNextTask(roomId), 3e4);
+        Utils.log(`[警告] 红包容器存在但状态无法识别 - 标题: "${statusText}" | 内容: "${countdownText}"`);
+        if (statusText.includes("已领完") || statusText.includes("已结束") || statusText.includes("已抢完")) {
+          Utils.log("[判断] 红包已领完或活动已结束。");
+          GlobalState.updateWorker(roomId, "SWITCHING", "红包已领完, 切换中", { countdown: null });
+          await this.switchRoom();
+        } else {
+          GlobalState.updateWorker(roomId, "WAITING", `状态未知, 重试中...`, { countdown: null });
+          setTimeout(() => this.findAndExecuteNextTask(roomId), 5e3);
+        }
+      }
+    },
+async extractPrizeInfo(redEnvelopeDiv) {
+      try {
+        Utils.log("[奖励提取] 开始提取奖励信息...");
+        const clickableContainer = redEnvelopeDiv.querySelector(SETTINGS.SELECTORS.clickableContainer);
+        if (!clickableContainer) {
+          Utils.log("[奖励提取] 未找到可点击容器");
+          return null;
+        }
+        if (!await DOM.safeClick(clickableContainer, "红包容器（提取奖励）")) {
+          Utils.log("[奖励提取] 点击失败");
+          return null;
+        }
+        const popup = await DOM.findElement(SETTINGS.SELECTORS.popupModal, 3e3);
+        if (!popup) {
+          Utils.log("[奖励提取] 弹窗未出现");
+          return null;
+        }
+        await Utils.sleep(500);
+        const prizes = [];
+        const prizeContainer = popup.querySelector(SETTINGS.SELECTORS.prizeContainer);
+        if (prizeContainer) {
+          const prizeItems = prizeContainer.querySelectorAll(SETTINGS.SELECTORS.prizeItem);
+          Utils.log(`[奖励提取] 找到 ${prizeItems.length} 个奖励项容器`);
+          for (const item of prizeItems) {
+            const imgElement = item.querySelector(SETTINGS.SELECTORS.prizeImage);
+            const countElement = item.querySelector(SETTINGS.SELECTORS.prizeCount);
+            if (imgElement && countElement && countElement.textContent.trim()) {
+              const prizeData = {
+                img: imgElement.src,
+                text: countElement.textContent.trim(),
+                name: imgElement.getAttribute("alt") || ""
+              };
+              Utils.log(`[奖励提取] ✓ 提取到奖励: ${prizeData.text}, 名称: ${prizeData.name}`);
+              prizes.push(prizeData);
+            } else {
+              Utils.log(`[奖励提取] ✗ 跳过不完整项 - 图片: ${!!imgElement}, 数量: ${countElement ? `"${countElement.textContent.trim()}"` : "null"}`);
+            }
+          }
+        } else {
+          Utils.log("[奖励提取] 未找到奖励容器");
+        }
+        Utils.log(`[奖励提取] 成功提取 ${prizes.length} 个有效奖励`);
+        const closeBtn = popup.querySelector(SETTINGS.SELECTORS.closeButton);
+        if (closeBtn) {
+          await DOM.safeClick(closeBtn, "关闭按钮（提取奖励）");
+          await Utils.sleep(300);
+        }
+        return prizes.length > 0 ? prizes : null;
+      } catch (error) {
+        Utils.log(`[奖励提取] 提取失败: ${error.message}`);
+        try {
+          const closeBtn = document.querySelector(SETTINGS.SELECTORS.closeButton);
+          if (closeBtn) {
+            await DOM.safeClick(closeBtn, "关闭按钮（异常）");
+          }
+        } catch {
+        }
+        return null;
       }
     },
 startHealthChecks(roomId, redEnvelopeDiv) {
       const CHECK_INTERVAL = SETTINGS.HEALTHCHECK_INTERVAL;
       const STALL_THRESHOLD = 4;
       const check = () => {
-        const currentPageStatus = redEnvelopeDiv.querySelector(SETTINGS.SELECTORS.countdownTimer)?.textContent.trim();
-        if (!currentPageStatus || !currentPageStatus.includes(":")) {
+        const contentElem = redEnvelopeDiv.querySelector(SETTINGS.SELECTORS.countdownTimer);
+        const headlineElem = redEnvelopeDiv.querySelector(SETTINGS.SELECTORS.statusHeadline);
+        const currentPageContent = contentElem ? contentElem.textContent.trim() : "";
+        const currentPageHeadline = headlineElem ? headlineElem.textContent.trim() : "";
+        if (!currentPageHeadline.includes("倒计时") || !currentPageContent.includes(":")) {
+          Utils.log("[哨兵] 检测到状态变化，停止监控。");
           return;
         }
         const scriptRemainingSeconds = (this.currentTaskEndTime - Date.now()) / 1e3;
-        const [pMin, pSec] = currentPageStatus.split(":").map(Number);
+        const timeMatch = currentPageContent.match(/(\d+):(\d+)/);
+        if (!timeMatch) {
+          Utils.log("[哨兵] 无法解析UI倒计时，跳过本次检查。");
+          return;
+        }
+        const pMin = parseInt(timeMatch[1]);
+        const pSec = parseInt(timeMatch[2]);
         const pageRemainingSeconds = pMin * 60 + pSec;
         const deviation = Math.abs(scriptRemainingSeconds - pageRemainingSeconds);
         const currentFormattedTime = Utils.formatTime(scriptRemainingSeconds);
@@ -7323,11 +7586,38 @@ async claimAndRecheck(roomId) {
         clearTimeout(this.healthCheckTimeoutId);
         this.healthCheckTimeoutId = null;
       }
-      Utils.log("开始执行领取流程...");
+      Utils.log(`[领取] 房间 ${roomId} 准备触发红包弹窗...`);
       GlobalState.updateWorker(roomId, "CLAIMING", "尝试打开红包...", { countdown: null });
-      const redEnvelopeDiv = document.querySelector(SETTINGS.SELECTORS.redEnvelopeContainer);
-      if (!await DOM.safeClick(redEnvelopeDiv, "右下角红包区域")) {
-        Utils.log("点击红包区域失败，重新寻找任务。");
+      const outerContainers = document.querySelectorAll(SETTINGS.SELECTORS.redEnvelopeContainer);
+      let targetBtn = null;
+      for (const outer of outerContainers) {
+        const hasBoxIcon = outer.querySelector(SETTINGS.SELECTORS.boxIcon);
+        if (!hasBoxIcon) {
+          continue;
+        }
+        const innerContainer = outer.querySelector(SETTINGS.SELECTORS.clickableContainer);
+        if (!innerContainer) {
+          continue;
+        }
+        const headlineElem = outer.querySelector(SETTINGS.SELECTORS.statusHeadline);
+        const contentElem = outer.querySelector(SETTINGS.SELECTORS.countdownTimer);
+        const headline = headlineElem ? headlineElem.textContent.trim() : "";
+        const content = contentElem ? contentElem.textContent.trim() : "";
+        if (headline.includes("倒计时") && content.includes(":") || headline.includes("可领取") || headline.includes("立即")) {
+          targetBtn = innerContainer;
+          Utils.log(`[领取] 锁定点击目标 - 标题: "${headline}" | 内容: "${content}"`);
+          break;
+        }
+      }
+      if (!targetBtn) {
+        Utils.log("[领取] 未能锁定有效的点击目标，尝试兜底查找...");
+        const outerDiv = await DOM.findElement(SETTINGS.SELECTORS.redEnvelopeContainer, 3e3);
+        if (outerDiv) {
+          targetBtn = outerDiv.querySelector(SETTINGS.SELECTORS.clickableContainer) || outerDiv;
+        }
+      }
+      if (!await DOM.safeClick(targetBtn, "红包内层容器")) {
+        Utils.log("[领取] 点击失败，重新寻找任务。");
         await Utils.sleep(2e3);
         this.findAndExecuteNextTask(roomId);
         return;
@@ -7339,8 +7629,24 @@ async claimAndRecheck(roomId) {
         this.findAndExecuteNextTask(roomId);
         return;
       }
-      const openBtn = popup.querySelector(SETTINGS.SELECTORS.openButton);
-      if (await DOM.safeClick(openBtn, "红包弹窗的打开按钮")) {
+      const singleBag = popup.querySelector(SETTINGS.SELECTORS.singleBag);
+      const openBtn = singleBag ? singleBag.querySelector(SETTINGS.SELECTORS.openButton) : null;
+      if (openBtn) {
+        const btnText = openBtn.textContent.trim();
+        Utils.log(`[领取] 找到打开按钮，文本: "${btnText}"`);
+        if (/(\d+)秒后/.test(btnText)) {
+          const waitMatch = btnText.match(/(\d+)秒后/);
+          if (waitMatch) {
+            const waitSeconds = parseInt(waitMatch[1]);
+            Utils.log(`[领取] 按钮显示还需等待 ${waitSeconds} 秒，等待中...`);
+            GlobalState.updateWorker(roomId, "CLAIMING", `等待 ${waitSeconds} 秒...`, { countdown: null });
+            await Utils.sleep((waitSeconds + 1) * 1e3);
+          }
+        }
+      }
+      const clickTarget = openBtn || singleBag || popup;
+      const targetName = openBtn ? "红包打开按钮" : singleBag ? "红包主体" : "红包弹窗";
+      if (await DOM.safeClick(clickTarget, targetName)) {
         if (await DOM.checkForLimitPopup()) {
           GlobalState.setDailyLimit(true);
           Utils.log("检测到每日上限！");
@@ -7357,9 +7663,9 @@ async claimAndRecheck(roomId) {
         Utils.log(`领取操作完成，结果: ${reward}`);
         GlobalState.updateWorker(roomId, "WAITING", `领取到: ${reward}`, { countdown: null });
         const closeBtn = document.querySelector(SETTINGS.SELECTORS.closeButton);
-        await DOM.safeClick(closeBtn, "领取结果弹窗的关闭按钮");
+        await DOM.safeClick(closeBtn, "关闭按钮");
       } else {
-        Utils.log("点击打开按钮失败。");
+        Utils.log("[领取] 点击打开操作失败。");
       }
       STATE.lastActionTime = Date.now();
       Utils.log("操作完成，2秒后在本房间内寻找下一个任务...");
@@ -7370,11 +7676,21 @@ async autoPauseVideo() {
       if (STATE.isSwitchingRoom || Date.now() - STATE.lastActionTime < SETTINGS.AUTO_PAUSE_DELAY_AFTER_ACTION) {
         return;
       }
-      Utils.log("正在寻找暂停按钮...");
-      const pauseBtn = await DOM.findElement(SETTINGS.SELECTORS.pauseButton, 5e3);
+      let pauseBtn = document.querySelector(SETTINGS.SELECTORS.pauseButton);
+      if (!pauseBtn) {
+        const player = document.querySelector("#js-player-video");
+        if (player) {
+          player.dispatchEvent(new MouseEvent("mouseenter", { bubbles: true }));
+          await Utils.sleep(500);
+          pauseBtn = document.querySelector(SETTINGS.SELECTORS.pauseButton);
+        }
+      }
       if (pauseBtn) {
-        if (await DOM.safeClick(pauseBtn, "暂停按钮")) {
-          Utils.log("视频已通过脚本暂停。");
+        const isPauseIcon = pauseBtn.innerHTML.includes("M9.5 7");
+        if (isPauseIcon) {
+          if (await DOM.safeClick(pauseBtn, "暂停按钮")) {
+            Utils.log("视频已通过脚本暂停。");
+          }
         }
       }
     },
@@ -7476,6 +7792,22 @@ startCommandListener(roomId) {
           this.commandChannel.close();
         }
       });
+    },
+async waitForRedEnvelopeContainer(timeout) {
+      const startTime = Date.now();
+      while (Date.now() - startTime < timeout) {
+        const containers = document.querySelectorAll(SETTINGS.SELECTORS.redEnvelopeContainer);
+        for (const container of containers) {
+          const hasBoxIcon = container.querySelector(SETTINGS.SELECTORS.boxIcon);
+          if (hasBoxIcon) {
+            Utils.log(`[等待] 找到红包容器，耗时 ${Date.now() - startTime}ms`);
+            return container;
+          }
+        }
+        await Utils.sleep(300);
+      }
+      Utils.log(`[等待] 等待红包容器超时（${timeout}ms）`);
+      return null;
     }
   };
   (function() {
@@ -7484,7 +7816,6 @@ startCommandListener(roomId) {
       const currentUrl = window.location.href;
       const controlIds = [SETTINGS.CONTROL_ROOM_ID, SETTINGS.TEMP_CONTROL_ROOM_RID].filter(Boolean);
       Utils.log(`控制页识别ID列表: ${controlIds.join(", ")}`);
-      Utils.log(`当前页面URL: ${currentUrl}`);
       const isControlRoom = controlIds.some(
         (id) => currentUrl.includes(`/${id}`) || currentUrl.includes(`/topic/`) && currentUrl.includes(`rid=${id}`)
       );
@@ -7505,7 +7836,6 @@ startCommandListener(roomId) {
           if (Object.hasOwn(globalTabs, roomId) && pendingIndex > -1) {
             pendingWorkers.splice(pendingIndex, 1);
             GM_setValue("qmx_pending_workers", pendingWorkers);
-            Utils.log(`[身份清理] 房间 ${roomId} 已是激活状态，清理残留的待处理标记。`);
           }
           WorkerPage.init();
         } else {
